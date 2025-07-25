@@ -1,97 +1,55 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: "CactusLib документация: Введение"
 ---
 
-## Setting up
+**CactusLib** — это \*\*мощный \*\*плагин-библиотека для [Exteragram](https://exteragram.app/), созданный для \_упрощения \_жизни как обычных пользователей, так и, в первую очередь, _разработчиков_ других плагинов. Он предоставляет унифицированный API для взаимодействия с клиентом, управления данными, создания сложных команд и многого другого. Эта документация поможет вам понять все возможности CactusLib и научит эффективно их использовать.
 
-Get your documentation site up and running in minutes.
+## Установка
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
+<Card title="Плагин" icon="download" iconType="solid" horizontal href="https://t.me/CactusPlugins/19" cta="Нажми сюда">
+  Пройдите по ссылке в Telegram, нажмите на файл и установите плагин.
 </Card>
 
-## Make it yours
+## 🌵 Ключевые возможности
 
-Design a docs site that looks great and empowers your users.
+- **Для пользователей:**
+  - Удобное меню для управления всеми установленными плагинами (`.chelp`).
+  - Возможность редактировать команды, включать и отключать их.
+  - Система импорта и экспорта плагинов вместе с их настройками и данными.
+  - Гибкая настройка системы команд и языка плагинов.
+  - И многое другое...
+- **Для разработчиков:**
+  - Простой и мощный API для создания плагинов.
+  - Наследование от базового класса `CactusUtils.Plugin` со встроенными утилитами.
+  - Удобные декораторы для создания команд (`@command`), обработчиков URI (`@uri`/`@message_uri`) и инлайн-кнопок (`@CactusUtils.Inline.on_click`).
+  - Встроенная система хранения данных (JSON DB).
+  - Поддержка локализации (мультиязычности) "из коробки".
+  - Инструменты для парсинга и создания сообщений с форматированием (Markdown/HTML).
+  - Готовые компоненты для UI: диалоги, уведомления и инлайн-клавиатуры.
+  - И многое другое...
 
 <Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
+  <Card title="Пользовательские команды" icon="command" iconType="solid" href="/user-guide/commands">
+    Ознакомьтесь с встроенными в CactusLib командами.
   </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
+  <Card title="Импорт / Экспорт" icon="upload" iconType="solid" href="/user-guide/import-export">
+    Переносите все плагины разом вместе с их данными и настройками.
   </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
+  <Card title="Начало работы для разработчиков" icon="rectangle-terminal" iconType="solid" href="/dev/quickstart">
+    Начните создавать свои плагины легко и уверенно.
   </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
+  <Card title="Примеры кода" icon="code" iconType="solid" href="/dev/samples">
+    Посмотрите готовые примеры реализаций.
   </Card>
 </Columns>
 
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
+## Также посетите
 
 <Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
+  <Card title="extera-docs" icon="globe" iconType="solid" href="https://plugins.exteragram.app/">
+    Официальная документация exteraGram по разработке плагинов.
   </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
+  <Card title="CactusPlugins" icon="link" iconType="solid" href="https://t.me/CactusPlugins">
+    Telegram-канал с плагинами от CactusTeam.
   </Card>
 </Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
