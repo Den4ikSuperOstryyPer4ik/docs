@@ -1,0 +1,196 @@
+---
+title: "Inline клавиатура и callback'и"
+description: "Огромная мощная система встроенной клавиатуры кнопок у сообщений."
+icon: "table-list"
+---
+
+CactusLib предоставляет элегантный способ создания инлайн-клавиатур и обработки нажатий на кнопки. Вся необходимая логика находится в пространстве имен `CactusUtils.Inline`.
+
+## 1. Создание клавиатуры
+
+Клавиатура состоит из рядов, а ряды — из кнопок.
+
+### `CactusUtils.Inline.Button` ([Source](/dev/utils/CactusUtils#inline:method-button))
+Создает одну кнопку.
+
+#### Иконки и Premium-эмодзи в тексте кнопки
+Вы можете использовать иконки и Premium-эмодзи в тексте кнопки.
+Синтаксис: `<emoji id=5427317234403930129/>` и `<icon id=msg_search/>`. Например:
+```python Пример кнопки с premium-эмодзи icon="python"
+button = CactusUtils.Inline.Button(
+    # ID премиум эмодзи
+    text="<emoji id=5427317234403930129/> Нажми меня",
+    query="привет exteraGram", # Это будет выставлено в поле сообщения
+)
+```
+
+<Frame caption="Кнопка с премиум эмодзи">
+  <img src="/images/inline_button_with_emoji.png" width="400" />
+</Frame>
+
+
+```python Пример кнопки с Drawable-иконкой icon="python"
+button = CactusUtils.Inline.Button(
+    # ID Drawable иконки
+    text="<icon id=msg_search/> Нажми меня",
+    query="привет AyuGram", # Это будет выставлено в поле сообщения
+)
+```
+
+<Frame caption="Кнопка с Drawable иконкой">
+  <img src="/images/inline_button_with_icon.png" width="400" />
+</Frame>
+
+
+<Tip>
+Все Drawable иконки (`R.Drawable.name`) можно найти в плагине [`DevSettingsIcons`](https://t.me/CactusPlugins/8)
+</Tip>
+
+
+### `CactusUtils.Inline.CallbackData` ([Source](/dev/utils/CactusUtils#inline:method-callbackdata))
+Создает данные для колбэка для кнопки.
+
+```python
+CactusUtils.Inline.CallbackData(
+    plugin_id: str,
+    method: str,
+    # ... другие
+    **kwargs
+)
+```
+
+### `CactusUtils.Inline.Markup` ([Source](/dev/utils/CactusUtils#inline:class-markup))
+
+Собирает кнопки в полноценную клавиатуру.
+
+```python Пример создания клавиатуры icon="python"
+# Создаем экземпляр разметки
+markup = CactusUtils.Inline.Markup()
+# Добавляем ряд с одной или несколькими кнопками
+markup.add_row(button1, button2)
+# Добавляем следующий ряд
+markup.add_row(button3)
+
+# или
+
+# Создаем экземпляр разметки
+markup = CactusUtils.Inline.Markup().add_row(button1, button2).add_row(button3)
+```
+
+
+## 2\. Отправка сообщения с клавиатурой
+
+Передайте созданный объект [`Markup`](/dev/utils/CactusUtils#inline:class-markup) в метод [`CactusUtils.Command.answer`](/dev/utils/CactusUtils#command:method-answer) или [`CactusUtils.send_message`](/dev/utils/CactusUtils#send-message).
+
+```python Создание и отправка кнопок icon="python" lines
+@command()
+def send_menu(self, cmd: CactusUtils.Command):
+    # Создаем данные для callback'а.
+    # Формат: "cactus://{plugin_id}/{method}?{key}={value}"
+    cb_data = CactusUtils.Inline.CallbackData(self.id, "menu_press", item="A")
+
+    markup = CactusUtils.Inline.Markup().add_row( # создаём клавиатуру с двумя кнопками в одном ряду
+        CactusUtils.Inline.Button("Открыть Google", url="https://google.com/"),
+        CactusUtils.Inline.Button("Нажми меня!", callback_data=cb_data)
+    )
+    cmd.answer("Выберите опцию:", markup=markup) # отправляем
+
+    return HookResult(strategy=HookStrategy.CANCEL)
+```
+
+## 3\. Обработка нажатий (callback)
+
+Для обработки нажатий используется **декоратор** [`@CactusUtils.Inline.on_click`](/dev/utils/CactusUtils#inline:decorator-on-click).
+
+  * **`@CactusUtils.Inline.on_click(method)`**: Декорирует функцию, которая будет вызвана, когда пользователь нажмет на кнопку с `callback_data`, где `method` совпадает с `method` в `CallbackData`.
+
+В функцию-обработчик передается объект [`CactusUtils.Inline.CallbackParams`](/dev/utils/CactusUtils#inline:class-callbackparams).
+
+## Полный пример
+
+```python counter.plugin icon="python" lines expandable
+class MyPlugin(CactusUtils.Plugin):
+    @command(doc="Показывает интерактивное меню")
+    def menu(self, cmd: CactusUtils.Command):
+        # Создаем клавиатуру с 1 рядом в 1 кнопку
+        markup = CactusUtils.Inline.Markup().add_row(
+            CactusUtils.Inline.Button(
+                "<icon id=msg_add/> Увеличить счетчик",
+                callback_data=CactusUtils.Inline.CallbackData(self.id, "counter_click")
+            )
+        )
+        # Получаем текущий счетчик
+        count = self.get("menu_counter", 0)
+        cmd.answer(f"Счетчик: {count}", markup=markup)
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+
+    @CactusUtils.Inline.on_click("counter_click")
+    def _on_counter_click(self, params: CactusUtils.Inline.CallbackParams):
+        # Увеличиваем счетчик
+        count = self.get("menu_counter", 0) + 1
+        self.set("menu_counter", count)
+
+        # Создаем новую клавиатуру
+        markup = CactusUtils.Inline.Markup().add_row(
+            CactusUtils.Inline.Button(
+                "<icon id=msg_add/> Увеличить счетчик",
+                callback_data=CactusUtils.Inline.CallbackData(self.id, "counter_click")
+            )
+        )
+        # Редактируем исходное сообщение, чтобы показать новый счетчик
+        params.edit(f"Счетчик: {count}", markup=markup)
+```
+
+<Icon icon="circle-play" size={16} iconType="solid" /> [Видео-демонстрация](/videos/inline_example.mp4)
+
+**Как это работает:**
+
+1.  Пользователь пишет `.menu`.
+2.  Плагин отправляет сообщение "Счетчик: 0" с кнопкой.
+3.  Пользователь нажимает на кнопку.
+4.  CactusLib перехватывает колбэк и видит, что метод — `counter_click`.
+5.  Вызывается функция `_on_counter_click`.
+6.  Функция обновляет значение в БД и редактирует исходное сообщение, заменяя его на "Счетчик: 1". Клавиатура остается на месте.
+
+
+## Отправка сообщения с клавиатурой в чат с метаданными внутри
+Чтобы отправить сообщение с клавиатурой в чат с метаданными, нужно передать `is_global=True` в конструктор [`CactusUtils.Inline.Markup`](/dev/utils/CactusUtils#inline:class-markup).
+
+```python clickme.plugin icon="python" lines expandable
+class MyPlugin(CactusUtils.Plugin):
+    @command(doc="Показывает интерактивное меню всем пользователям")
+    def items(self, cmd: CactusUtils.Command):
+        # Создаем клавиатуру с 1 рядом в 1 кнопку
+        markup = CactusUtils.Inline.Markup(is_global=True).add_row(
+            CactusUtils.Inline.Button(
+                "Нажми меня!",
+                url="https://t.me/CactusPlugins"
+            )
+        )
+        cmd.answer(f"Сообщение с Inline-кнопками для всех", markup=markup)
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+
+    @command(doc="Показывает интерактивное меню всем пользователям альтернативным методом")
+    def items2(self, cmd: CactusUtils.Command):
+        # Создаем клавиатуру с 1 рядом в 1 кнопку
+        markup = CactusUtils.Inline.Markup(is_global=True).add_row(
+            CactusUtils.Inline.Button(
+                "Нажми меня!",
+                url="https://t.me/CactusPlugins"
+            )
+        )
+        # Ставим ссылку с метаданными в пробел, чтобы не было заметно
+        cmd.answer(f"Сообщение с<a href='{markup.to_url_with_data()}'> </a>Inline-кнопками для всех")
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+```
+
+<Frame caption='.items1 - Показывает интерактивное меню всем пользователям обычным способом'>
+    <img src="/images/items1.png" width="400" />
+</Frame>
+
+<Frame caption='.items2 - Показывает интерактивное меню всем пользователям альтернативным способом'>
+    <img src="/images/items2.png" width="400" />
+</Frame>

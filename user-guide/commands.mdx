@@ -1,0 +1,110 @@
+---
+title: "Команды"
+description: "Пользовательские команды в CactusLib"
+icon: "diamonds-4"
+---
+
+CactusLib предоставляет набор команд для управления вашими плагинами и самим собой. По умолчанию, все команды начинаются с префикса `.` (точка). Вы можете изменить этот префикс.
+
+### <Icon icon="list-tree" size={24} iconType="solid" /> `.chelp [имя/id плагина | команда]`
+
+Это основная и самая мощная команда. Она служит центральным узлом для просмотра и управления плагинами.
+
+<ParamField path=".chelp">
+  Показывает полный список установленных плагинов, разделенный на две категории:
+    * Плагины, использующие CactusLib (с расширенными возможностями управления).
+    * Обычные плагины.
+    Вы можете переключаться между страницами, если плагинов много.
+</ParamField>
+
+<ParamField path=".chelp ИмяПлагина/id">
+  Показывает подробную информацию о конкретном плагине: его описание, версию, автора и список его команд с описаниями.
+</ParamField>
+
+<ParamField body=".chelp команда">
+  Если вы введете имя команды, `.chelp` найдет плагин, которому принадлежит эта команда, и покажет информацию о нем.
+</ParamField>
+
+### <Icon icon="slash-forward" size={24} iconType="solid" /> `.setprefix <префикс>`
+
+Позволяет изменить префикс для всех команд.
+
+<ParamField path="префикс" required type="1 символ">
+  Новый префикс для системы команд CactusLib.
+
+  <Warning>Не рекомендуется выставлять буквы, т.к. с ними бывают баги.</Warning>
+
+    * **Пример:** `.setprefix /`
+        После выполнения этой команды все команды нужно будет вызывать через `/`, например, `/chelp`.
+    
+  <Note>Вернуть префикс или просто изменить также можно в настройках плагина.</Note>
+</ParamField>
+
+
+### <Icon icon="hexagon" size={24} iconType="solid" /> `.logs [уровень] [id плагина] [время]`
+
+Команда, фильтрующая логи по параметрам. Показывает логи работы плагинов.
+
+<ParamField path="уровень" type="str">
+  Уровень логов.
+  `DEBUG`, `INFO`, `WARN`, `ERROR`.
+</ParamField>
+
+<ParamField path="id плагина" type="str">
+  ID плагина.
+  <Warning>Регистр ID также важен. Если у плагина ID `Test_Plugin`, то `test_plugin`, `testplugin` и другие варианты не будут работать.</Warning>
+</ParamField>
+
+<ParamField path="время" type="int (seconds)">
+  Время, за которое будут собраны последние логи (в секундах).
+</ParamField>
+
+* **Пример:** `.logs ERROR cactuslib 300` - покажет все ошибки из логов плагина `cactuslib` за последние 5 минут.
+
+---
+
+### <Icon icon="code" size={24} iconType="solid" /> `.eval <python код>` (`.e`)
+
+Выполняет произвольный Python-код. Есть поддержка `print` функции.
+
+<Warning>Эта команда предназначена **только для опытных пользователей и разработчиков**. **Некорректное** использование может привести к **ошибкам** или **нестабильной работе** приложения/плагинов.</Warning>
+
+<Tabs>
+  <Tab title="В ответ на .py файл с кодом">
+    Команду можно писать в ответ на файл с кодом. Бывает полезно, когда нужно протестировать большой кусок кода, который будет не очень пихать в сообщение.
+
+    <Icon icon="circle-play" size={16} iconType="solid" /> [Видео-демонстрация](/videos/eval_to_file.mp4)
+  </Tab>
+  <Tab title="В ответ на сообщение с кодом">
+    Команду можно писать в ответ на сообщение с кодом, не копируя и не вставляя сам код.
+
+    <Icon icon="circle-play" size={16} iconType="solid" /> [Видео-демонстрация](/videos/eval_to_msg.mp4)
+  </Tab>
+  <Tab title="Код после команды">
+    Обычное выполнение кода.
+    <Frame caption=".e import math; math.sqrt(10000)">
+      <img src="/images/eval_example1.png" width="400" />
+    </Frame>
+    <Frame caption=".e 5*60 | .e from client_utils import get_last_fragment as g; g()">
+      <img src="/images/eval_example2.png" width="400" />
+    </Frame>
+    <Frame caption='.e print("Hello")'>
+      <img src="/images/eval_example3.png" width="400" />
+    </Frame>
+  </Tab>
+</Tabs>
+
+---
+
+<Note>
+  Если **результат** выполнения, **ошибка** или **вывод** (`print`) будут **слишком велики** для одного сообщения, они будут помещены в отдельный файл.
+  <img src="/images/eval_result_file.jpg" width="400" />
+  <img src="/images/eval_error_file.jpg" width="400" />
+  <img src="/images/eval_output_file.png" width="400" />
+</Note>
+
+---
+
+### <Icon icon="file-export" size={24} iconType="solid" /> `.plf <имя/id плагина>`
+
+Отправляет файл с исходным кодом (`.plugin`) указанного плагина в текущий чат.

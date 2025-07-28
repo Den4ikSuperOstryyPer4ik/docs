@@ -1,0 +1,2163 @@
+---
+title: "class CactusUtils"
+---
+Вся структура класса `CactusUtils`.
+<Note>
+  Просьба посмотреть всех методы и все классы, вы можете найти вспомогающие вам штуки.
+</Note>
+
+# Методы
+Все методы являются статичными, то есть не требуют инициализации класса и можно вызывать напрямую: `CactusUtils.copy_to_clipboard("Hello, exteraGram!")`
+
+<AccordionGroup>
+  <Accordion title="version_bigger_or_equal">
+    ```python
+    def version_bigger_or_equal(a, b) -> bool
+    ```
+    Сравнивает версию `a` с версией `b`. На выход идёт `a >= b`.
+
+    ```python Пример использования icon="python"
+    v1 = "1.6.5"
+    v2 = "1.8"
+    is_upgrade = CactusUtils.version_bigger_or_equal(v1, v2)
+    if not is_upgrade:
+      raise Exception("v1 < v2")
+    ```
+  </Accordion>
+
+  <Accordion title="all_plugins">
+    ```python
+    def all_plugins() -> list[BasePlugin | CactusUtils.Plugin]
+    ```
+    Возвращает список классов всех плагинов из `PluginsController.pluginInstances`.
+  </Accordion>
+
+  <Accordion title="plugin">
+    ```python
+    def plugin(plugin_id: str) -> BasePlugin | CactusUtils.Plugin
+    ```
+    Возвращает класс плагина по его ID.
+  </Accordion>
+
+  <Accordion title="gen">
+    ```python
+    def gen(java_class: JavaClass, method_name: str, return_value: bool = False) -> type
+    ```
+
+    Этот метод генерирует новый прокси-класс, который расширяет данный `java_class` и переопределяет определенный метод.
+
+    <ParamField path="java_class" type='type(jclass("java.lang.Object"))' required>
+      Класс-интерфейс для создания своего класс через dynamic_proxy.
+    </ParamField>
+
+    <ParamField path="method_name" type="str" required>
+      Имя метода, который будет переопределен в прокси-классе.
+    </ParamField>
+
+    <ParamField path="return_value" type="bool" default="False">
+      Возвращать ли значение вашей функции в ответ в переопределенном методе.
+    </ParamField>
+
+    ```python Пример использования icon="python"
+    from org.telegram.messenger import Utilities
+
+    # Функция для переопределения
+    def function(arg1, arg2, test):
+        ...
+
+    # Это создает прокси, который переопределяет 'run'
+    MyProxyClass = CactusUtils.gen(Utilities.Callback2, "run")
+
+    # Создание экземпляра прокси
+    proxy_instance = MyProxyClass(function, test="value")
+    ```
+  </Accordion>
+
+  <Accordion title="gen2">
+    ```python
+    def gen2(java_class: JavaClass, return_value: bool = False, **methods) -> type
+    ```
+    Этот метод похож на `gen`, но позволяет переопределять несколько методов в сгенерированном прокси-классе.
+
+    <ParamField path="java_class" type='type(jclass("java.lang.Object"))' required>
+      Класс-интерфейс для создания своего класс через dynamic_proxy.
+    </ParamField>
+
+    <ParamField path="return_value" type="bool" default="False">
+      Возвращать ли значение ваших функций в ответ в переопределенных методах.
+    </ParamField>
+
+    <ParamField path="**methods" type="dict[str, callable]" required>
+      Именованные аргументы, где ключ - это имя метода, а значение - это вызываемый объект Python, который заменит исходную реализацию метода.
+    </ParamField>
+
+    ```python Пример использования icon="python"
+    from com.example import AnotherJavaClass
+
+    # Предположим, что AnotherJavaClass имеет методы 'methodA' и 'methodB'б которые нам нужно переопределить
+    MyMultiProxyClass = CactusUtils.gen2(
+        AnotherJavaClass,
+        return_value=True,
+        methodA=lambda *args: print(f"Метод A вызван с: {args}"),
+        methodB=lambda *args, **kwargs: print(f"Метод B вызван с: {args}, {kwargs}")
+    )
+
+    proxy_instance = MyMultiProxyClass("аргумент1", test="аргумент2")
+
+    from android.text import TextWatcher
+
+    def handle_changed_text(text):
+        ...
+
+    text_watcher = CactusUtils.gen2(TextWatcher, **{
+        "onTextChanged": lambda text, *_: handle_changed_text(text),
+        "beforeTextChanged": lambda *_: None,
+        "afterTextChanged": lambda *_: None
+    })()
+    ```
+  </Accordion>
+
+  <Accordion title="compress_and_encode">
+    ```python
+    def compress_and_encode(data: Union[bytes, str], level: int = 7) -> str
+    ```
+    Метод для сжатия данных. Оборачивает в `base64` сжатые через `zlib` данные.
+
+    <ParamField path="data" type="bytes | str" required>
+      Данные для упаковывания.
+    </ParamField>
+
+    <ParamField path="level" type="int" default="7">
+      Уровень сжатия. [Подробнее](https://docs.python.org/3/library/zlib.html#zlib.compress)
+    </ParamField>
+
+    ```python Пример использования icon="python"
+    compressed = CactusUtils.compress_and_encode("hello from [dev-cat] den!")
+    # eNrLSM3JyVdIK8rPVYhOSS3TTU4siVVISc1TBAB3zAjd
+    ```
+  </Accordion>
+
+  <Accordion title="decode_and_decompress">
+    ```python
+    def decode_and_decompress(encoded_data: Union[bytes, str]) -> bytes
+    ```
+    Метод для распаковки данных, сжатых с помощью метода `decode_and_decompress`.
+
+    <ParamField path="data" type="bytes | str" required>
+      Данные для распаковки.
+    </ParamField>
+    
+    ```python Пример использования icon="python"
+    compressed = CactusUtils.compress_and_encode("hello from [dev-cat] den!")
+    string = CactusUtils.decode_and_decompress(compressed).decode("utf-8")
+    # "hello from [dev-cat] den!"
+    ```
+  </Accordion>
+    
+  <Accordion title="pluralization_string">
+    ```python
+    def pluralization_string(number: int, words: List[str]) -> str
+    ```
+    Возвращает множественную строку, основанную на заданном числе.
+    
+    <ParamField path="number" type="int" required>
+      Число, определяющее форму множественного числа.
+    </ParamField>
+
+    <ParamField path="words" type="list[str]" required>
+      Список из 3 слов, представляющих формы единственного, двойственного и множественного числа.
+    </ParamField>
+
+    ```python Пример использования icon="python"
+    num = 5
+    pluralization_string(num, ["жизнь", "жизни", "жизней"])
+    # 1 -> 1 жизнь, 2 -> 2 жизни, 5 -> 5 жизней
+    pluralization_string(num, ["рубль", "рубля", "рублей"])
+    # 1 -> 1 рубль, 2 -> 2 рубля, 5 -> 5 рублей
+    pluralization_string(num, ["ручка", "ручки", "ручек"])
+    # 1 -> 1 ручка, 2 -> 2 ручки, 5 ручек
+    pluralization_string(num, ["апельсин", "апельсина", "апельсинов"])
+    # 1 -> 1 апельсин, 2 -> 2 апельсина, 5 -> 5 апельсинов
+    ```
+  </Accordion>
+
+  <Accordion title="escape_html">
+    ```python
+    def escape_html(text: str) -> str
+    ```
+    Экранирует html-теги
+
+    <ParamField path="text" type="str" required>
+      Текст для экранирования
+    </ParamField>
+    
+    ```python Пример использования icon="python"
+    escaped = CactusUtils.escape_html("Test <html> string!")
+    # Test &lt;html&gt; string!
+    ```
+  </Accordion>
+
+  <Accordion title="copy_to_clipboard">
+    ```python
+    def copy_to_clipboard(text: str) -> None
+    ```
+    Копирует заданный текст в буфер обмена и выводит информацию об этом
+    
+    <ParamField path="text" type="str" required>
+      Текст для копирования.
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="prefix">
+    ```python
+    def prefix() -> str
+    ```
+    Возвращает текущий префикс системы команд в CactusLib.
+  </Accordion>
+
+  <Accordion title="get_locale">
+    ```python
+    def get_locale() -> str
+    ```
+    Возвращает текущую локаль. Например, `en` или `ru`.
+  </Accordion>
+
+  <Accordion title="log | debug | warn | info | error">
+    ```python
+    def log(message: str, level: str = "INFO", __id__: Optional[str] = "cactuslib") -> None: ...
+    def debug(message: str, __id__: Optional[str] = "cactuslib") -> None: ...
+    def warn(message: str, __id__: Optional[str] = "cactuslib") -> None: ...
+    def info(message: str, __id__: Optional[str] = "cactuslib") -> None: ...
+    def error(message: str, __id__: Optional[str] = "cactuslib") -> None: ...
+    ```
+    Рекомендуется использовать методы в классе плагина.
+
+    Методы для логирования по уровню и ID. На выход в `logcat` идёт лог формата: `[level] [__id__] {message}`
+    
+    <ParamField path="message" type="str" required>
+      Текст лога
+    </ParamField>
+    
+    <ParamField path="level" type="str">
+      Уровень логов. `DEBUG` | `INFO` | `WARN` | `ERROR`
+      Одноименные методы автоматически выставляют данный параметр.
+    </ParamField>
+    
+    <ParamField path="__id__" type="str" required>
+      ID плагина.
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="get_logs">
+    ```python
+    def get_logs(
+        __id__: Optional[str] = None,
+        times: Optional[int] = None,
+        lvl: Optional[str] = None,
+        as_list: bool = False
+    ) -> list[str] | str
+    ```
+    Метод для получения логов по ID, уровню и времени.
+  </Accordion>
+
+  <Accordion title="array_list">
+    ```python
+    def array_list(*args) -> ArrayList
+    ```
+    Метод для легкого создания `ArrayList`.
+    Можно привести список в качестве первого и единственного аргумента, тогда он преобразует данный список в `ArrayList`.
+    
+    ```python Пример использования icon="python"
+    plist = ["test", "values", "123"]
+    alist = CactusUtils.array_list(plist)
+
+    alist2 = CactusUtils.array_list(
+      "first",
+      "and",
+      "second",
+      "value",
+    )
+    ```
+  </Accordion>
+
+  <Accordion title="edit_message">
+    ```python
+    def edit_message(
+        message_object: MessageObject,
+        text: str, *,
+        parse_message: bool = True,
+        parse_mode: str = "HTML",
+        markup: Any = None, **kwargs
+    )
+    ```
+
+    Метод для редактирования сообщения. 
+
+    <ParamField path="message_object" type="org.telegram.messenger.MessageObject" required>
+      Объект изменяемого сообщения.
+    </ParamField>
+
+    <ParamField path="text" type="str" required>
+      Новый текст сообщения.
+    </ParamField>
+
+    <ParamField path="parse_message" type="bool" default="True">
+      Разбирать ли текст на [HTML-разметку или Markdown-разметку](/dev/parsing).
+    </ParamField>
+
+    <ParamField path="parse_mode" type="str" default="HTML">
+      Режим парсинга. Может быть `"HTML"` или `"MARKDOWN"`.
+    </ParamField>
+
+    <ParamField path="markup" type="list[dict] | CactusUtils.Inline.Markup | ..." default="None">
+      Объект с [Inline клавиатурой](/dev/inline).
+    </ParamField>
+
+    <ParamField path="**kwargs">
+      Дополнительные параметры, которые передаются в `editMessage`
+
+      <Accordion title="Дополнительные параметры">
+        <ParamField path="searchLinks" type="bool" default="False">
+          Добавлять ли предпросмотр ссылке (наверное).
+
+          Используется в реквесте `TLRPC.TL_messages_editMessage()` в качестве параметра `no_webpage`:
+          ```java
+          req.no_webpage = !searchLinks
+          ```
+        </ParamField>
+
+        <ParamField path="fragment" type="org.telegram.ui.ActionBar.BaseFragment" default="None">
+          Фрагмент. Рекомендуется указывать `fragment=client_utils.get_last_fragment()`.
+        </ParamField>
+
+        <ParamField path="scheduleDate" type="int" default="0">
+          Schedule datetime timestamp.
+        </ParamField>
+      </Accordion>
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="edit_message_markup">
+    ```python
+    def edit_message_markup(cell: ChatMessageCell, markup: Optional[Any] = None)
+    ```
+
+    Метод для редактирования Inline-клавиатуры сообщения.
+
+    <ParamField path="cell" type="org.telegram.ui.Cells.ChatMessageCell" required>
+      UI-Объект сообщения, который нужно отредактировать.
+    </ParamField>
+
+    <ParamField path="markup" type="list[dict] | CactusUtils.Inline.Markup | ..." default="None">
+      Объект с [Inline клавиатурой](/dev/inline) (`None` для удаления клавиатуры у сообщения).
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="send_message">
+    ```python
+    def send_message(
+        cls,
+        peer: int,
+        text: str, *,
+        parse_message: bool = True,
+        parse_mode: str = "HTML",
+        markup: Optional[Any] = None,
+        on_sent: Optional[Callable] = None,
+        **kwargs
+    )
+    ```
+    
+    Важный частоиспользуемый метод для отправки сообщений. Текст может быть разобран на [HTML-разметку или Markdown-разметку](/dev/parsing).
+    К сообщению могут быть добавлены [Inline кнопки](/dev/inline), а также можно отследить отправку сообщения.
+
+    <ParamField path="peer" type="int" required>
+      ID чата, в который нужно отправить сообщение.
+    </ParamField>
+
+    <ParamField path="text" type="str" required>
+      Текст отправляемого сообщения.
+    </ParamField>
+
+    <ParamField path="parse_message" type="bool" default="True">
+      Разбирать ли текст на [HTML-разметку или Markdown-разметку](/dev/parsing).
+    </ParamField>
+
+    <ParamField path="parse_mode" type="str" default="HTML">
+      Режим парсинга. Может быть `"HTML"` или `"MARKDOWN"`.
+    </ParamField>
+
+    <ParamField path="markup" type="list[dict] | CactusUtils.Inline.Markup | ..." default="None">
+      Объект с [Inline клавиатурой](/dev/inline).
+    </ParamField>
+
+    <ParamField path="on_sent" type="Callable[[CactusUtils.Inline.CallbackParams], None]" default="None">
+      Функция, которая будет вызвана после отправки сообщения. Принимает один аргумент — объект `CactusUtils.Inline.CallbackParams` (button=None).
+    </ParamField>
+
+    <ParamField path="**kwargs">
+      Дополнительные параметры, которые передаются в send_message
+
+      <Accordion title="Дополнительные параметры">
+        <ParamField path="location" type="org.telegram.tgnet.TLRPC.MessageMedia" />
+        <ParamField path="photo" type="org.telegram.tgnet.TLRPC.TL_photo" />
+        <ParamField path="videoEditedInfo" type="org.telegram.messenger.VideoEditedInfo" />
+        <ParamField path="user" type="org.telegram.tgnet.TLRPC.User" />
+        <ParamField path="document" type="org.telegram.tgnet.TLRPC.TL_document" />
+        <ParamField path="game" type="org.telegram.tgnet.TLRPC.TL_game" />
+        <ParamField path="poll" type="org.telegram.tgnet.TLRPC.TL_messageMediaPoll" />
+        <ParamField path="todo" type="Torg.telegram.tgnet.LRPC.TL_messageMediaToDo" />
+        <ParamField path="invoice" type="TLRPC.TL_messageMediaInvoice" />
+        <ParamField path="mediaWebPage" type="TLRPC.TL_messageMediaWebPage" />
+        <ParamField path="path" type="String" />
+        <ParamField path="replyToMsg" type="org.telegram.messenger.MessageObject" />
+        <ParamField path="replyToTopMsg" type="org.telegram.messenger.MessageObject" />
+        <ParamField path="webpage" type="TLRPC.WebPage" />
+        <ParamField path="searchLinks" type="bool" default="True" />
+        <ParamField path="retryMessageObject" type="org.telegram.messenger.MessageObject" />
+        <ParamField path="notify" type="bool" default="True" />
+        <ParamField path="scheduleDate" type="int" default="0" />
+        <ParamField path="ttl" type="int" default="0" />
+        <ParamField path="parentObject" type="java.lang.Object" />
+        <ParamField path="sendAnimationData" type="org.telegram.messenger.MessageObject.SendAnimationData" />
+        <ParamField path="updateStickersOrder" type="bool" default="False" />
+        <ParamField path="hasMediaSpoilers" type="bool" default="False" />
+        <ParamField path="replyToStoryItem" type="org.telegram.tgnet.tl.TL_stories.StoryItem" />
+        <ParamField path="sendingStory" type="org.telegram.tgnet.tl.TL_stories.StoryItem" />
+        <ParamField path="replyQuote" type="ChatActivity.ReplyQuote" />
+        <ParamField path="quick_reply_shortcut" type="String" />
+        <ParamField path="quick_reply_shortcut_id" type="int" />
+        <ParamField path="effect_id" type="long" default="not set" />
+        <ParamField path="invert_media" type="bool" default="False" />
+        <ParamField path="sendingHighQuality" type="bool" default="?" />
+        <ParamField path="suggestionParams" type="MessageSuggestionParams" />
+      </Accordion>
+    </ParamField>
+  </Accordion>
+
+  <Accordion title="send_file">
+    ```python
+    def send_file(
+        peer: int, path: str,
+        caption: Optional[str] = None, *,
+        parse_markdown: bool = True,
+        parse_mode: str = "HTML",
+        **kwargs
+    )
+    ```
+
+    Отправляет документ (файл) с возможностью добавить форматированную подпись.
+
+    <ParamField path="peer" type="int" required>
+      ID чата.
+    </ParamField>
+
+    <ParamField path="path" type="str" required>
+      Путь к файлу
+    </ParamField>
+
+    <ParamField path="caption" type="str" default="None">
+      Текст-описание к файлу.
+    </ParamField>
+
+    <ParamField path="parse_message" type="bool" default="True">
+      Разбирать ли текст на [HTML-разметку или Markdown-разметку](/dev/parsing).
+    </ParamField>
+
+    <ParamField path="parse_mode" type="str" default="HTML">
+      Режим парсинга. Может быть `"HTML"` или `"MARKDOWN"`.
+    </ParamField>
+
+    <ParamField path="**kwargs">
+      Дополнительные параметры, которые передаются в send_message
+
+      <Accordion title="Дополнительные параметры">
+        Параметры, которые передаются в метод [`SendMessagesHelper.prepareSendingDocumentInternal`](https://github.com/DrKLO/Telegram/blob/f106432682da4cdef7dc2a88adf87897d5fd2c32/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java#L7968)
+
+        <ParamField path="mime" type="str" default="text/plain">
+          MIME type of the file
+        </ParamField>
+
+        <ParamField path="replyToMsg" type="MessageObject" default="None">
+          Message to reply to (maybe `params.replyToMsg`)
+        </ParamField>
+
+        <ParamField path="replyToTopMsg" type="MessageObject" default="None">
+          top message to reply to (maybe `params.replyToTopMsg`)
+        </ParamField>
+
+        <ParamField path="storyItem" type="TL_stories.StoryItem" default="None">
+          Режим парсинга. Может быть `"HTML"` или `"MARKDOWN"`.
+        </ParamField>
+
+        <ParamField path="quote" type="ChatActivity.ReplyQuote" default="None">
+          Quote
+        </ParamField>
+
+        <ParamField path="notify" type="bool" default="True">
+          Send message with notification
+        </ParamField>
+
+        <ParamField path="editingMessageObject" type="org.telegram.messenger.MessageObject" default="None">
+          Message to edit/add file
+        </ParamField>
+
+        <ParamField path="scheduleDate" type="int" default="0">
+          Schedule datetime
+        </ParamField>
+
+        <ParamField path="quickReplyShortcut" type="str" default="None">
+          Quick reply shortcut
+        </ParamField>
+
+        <ParamField path="quickReplyShortcutId" type="int" default="0">
+          Quick reply shortcut ID
+        </ParamField>
+
+        <ParamField path="effect_id" type="int" default="0">
+          Message effect ID
+        </ParamField>
+
+        <ParamField path="invertMedia" type="bool" default="False">
+          Invert media
+        </ParamField>
+
+        <ParamField path="payStars" type="int" default="0">
+          Pay stars
+        </ParamField>
+
+        <ParamField path="accountInstance" type="org.telegram.messenger.AccountInstance" default="client_utils.get_account_instance()">
+          Current Account instance
+        </ParamField>
+
+        <ParamField path="entities" type="ArrayList<TLRPC.MessageEntity>" default="False">
+          Message caption entities (Если `parse_message=True`, данный параметр будет сгенерирован автоматически)
+        </ParamField>
+
+        <ParamField path="groupId" type="long[]" default="jarray(jlong)([0])">
+          Group ID
+        </ParamField>
+
+        <ParamField path="isGroupFinal" type="bool" default="True">
+          Is final document in group
+        </ParamField>
+
+        <ParamField path="docType" type="Integer[]" default="jarray(Integer)([0])">
+          Doc type ID
+        </ParamField>
+
+        <ParamField path="monoForumPeerId" type="int" default="0">
+          MonoForum peer ID
+        </ParamField>
+
+        <ParamField path="suggestionParams" type="org.telegram.messenger.MessageSuggestionParams" default="None">
+          Suggestion message params
+        </ParamField>
+      </Accordion>
+    </ParamField>
+
+    **Пример:**
+
+    ```python logs.plugin icon="python" lines
+    @command("getlogs")
+    def handle_logs(self, command: CactusUtils.Command):
+        log_content = "some log data..."
+        # Записываем контент во временный файл
+        file_path = self.utils.FileSystem.write_temp_file("logs.txt", log_content.encode("utf-8"), delete_after=60)
+
+        self.answer_file(command.params, file_path, caption="Вот ваши логи:")
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+    ```
+
+  </Accordion>
+
+  <Accordion title="send_files">
+    ```python
+    def send_files(
+        peer: int, paths: List[str],
+        caption: Optional[str] = None, *,
+        parse_message: bool = True,
+        parse_mode: str = "HTML",
+        **kwargs
+    )
+    ```
+
+    Отправляет документы (файлы) с возможностью добавить форматированную подпись к первому из них.
+
+    <ParamField path="peer" type="int" required>
+      ID чата.
+    </ParamField>
+
+    <ParamField path="paths" type="list[str]" required>
+      Пути к файлам.
+    </ParamField>
+
+    <ParamField path="caption" type="str" default="None">
+      Текст-описание к файлу.
+    </ParamField>
+
+    <ParamField path="parse_message" type="bool" default="True">
+      Разбирать ли текст на [HTML-разметку или Markdown-разметку](/dev/parsing).
+    </ParamField>
+
+    <ParamField path="parse_mode" type="str" default="HTML">
+      Режим парсинга. Может быть `"HTML"` или `"MARKDOWN"`.
+    </ParamField>
+
+    <ParamField path="**kwargs">
+      Дополнительные параметры, которые передаются в send_message
+
+      <Accordion title="Дополнительные параметры">
+        Параметры, которые передаются в метод [`SendMessagesHelper.prepareSendingDocumentInternal`](https://github.com/DrKLO/Telegram/blob/f106432682da4cdef7dc2a88adf87897d5fd2c32/TMessagesProj/src/main/java/org/telegram/messenger/SendMessagesHelper.java#L7968)
+
+        <ParamField path="mime" type="str" default="text/plain">
+          MIME type of the file
+        </ParamField>
+
+        <ParamField path="replyToMsg" type="MessageObject" default="None">
+          Message to reply to (maybe `params.replyToMsg`)
+        </ParamField>
+
+        <ParamField path="replyToTopMsg" type="MessageObject" default="None">
+          top message to reply to (maybe `params.replyToTopMsg`)
+        </ParamField>
+
+        <ParamField path="storyItem" type="TL_stories.StoryItem" default="None">
+          Режим парсинга. Может быть `"HTML"` или `"MARKDOWN"`.
+        </ParamField>
+
+        <ParamField path="quote" type="ChatActivity.ReplyQuote" default="None">
+          Quote
+        </ParamField>
+
+        <ParamField path="notify" type="bool" default="True">
+          Send message with notification
+        </ParamField>
+
+        <ParamField path="editingMessageObject" type="org.telegram.messenger.MessageObject" default="None">
+          Message to edit/add file
+        </ParamField>
+
+        <ParamField path="scheduleDate" type="int" default="0">
+          Schedule datetime
+        </ParamField>
+
+        <ParamField path="quickReplyShortcut" type="str" default="None">
+          Quick reply shortcut
+        </ParamField>
+
+        <ParamField path="quickReplyShortcutId" type="int" default="0">
+          Quick reply shortcut ID
+        </ParamField>
+
+        <ParamField path="effect_id" type="int" default="0">
+          Message effect ID
+        </ParamField>
+
+        <ParamField path="invertMedia" type="bool" default="False">
+          Invert media
+        </ParamField>
+
+        <ParamField path="payStars" type="int" default="0">
+          Pay stars
+        </ParamField>
+
+        <ParamField path="accountInstance" type="org.telegram.messenger.AccountInstance" default="client_utils.get_account_instance()">
+          Current Account instance
+        </ParamField>
+
+        <ParamField path="entities" type="ArrayList<TLRPC.MessageEntity>" default="False">
+          Message caption entities (Если `parse_message=True`, данный параметр будет сгенерирован автоматически)
+        </ParamField>
+
+        <ParamField path="groupId" type="long[]" default="jarray(jlong)([0])">
+          Group ID
+        </ParamField>
+
+        <ParamField path="isGroupFinal" type="bool" default="True">
+          Is final document in group
+        </ParamField>
+
+        <ParamField path="docType" type="Integer[]" default="jarray(Integer)([0])">
+          Doc type ID
+        </ParamField>
+
+        <ParamField path="monoForumPeerId" type="int" default="0">
+          MonoForum peer ID
+        </ParamField>
+
+        <ParamField path="suggestionParams" type="org.telegram.messenger.MessageSuggestionParams" default="None">
+          Suggestion message params
+        </ParamField>
+      </Accordion>
+    </ParamField>
+
+    **Пример:**
+
+    ```python logs.plugin icon="python" lines
+    @command("getlogs")
+    def handle_logs(self, command: CactusUtils.Command):
+        log_content = "some log data..."
+        # Записываем контент во временный файл
+        file_path = self.utils.FileSystem.write_temp_file("logs.txt", log_content.encode("utf-8"), delete_after=60)
+
+        self.answer_file(command.params, file_path, caption="Вот ваши логи:")
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+    ```
+
+  </Accordion>
+</AccordionGroup>
+
+
+# Классы
+<AccordionGroup>
+  <Accordion title="JsonDB">
+    ```python
+    class JsonDB(dict)
+    ```
+
+    Класс для управления данными в JSON-файле, наследующий от `dict`. Он автоматически загружает данные из указанного файла при инициализации и сохраняет изменения при вызове методов, таких как `set`, `pop` или `update_from`.
+
+    <ParamField path="loc" type="str" required>
+    Путь к JSON-файлу.
+    </ParamField>
+
+    <AccordionGroup>
+      <Accordion title="method _load">
+        ```python
+        def _load(self) -> Dict[str, Any]
+        ```
+
+        Загружает данные из JSON-файла, указанного при инициализации. Если файл не существует, возвращает пустой словарь.
+      </Accordion>
+
+      <Accordion title="method save">
+        ```python
+        def save(self) -> None
+        ```
+
+        Сохраняет текущее состояние словаря в JSON-файл.
+      </Accordion>
+
+      <Accordion title="method set">
+        ```python
+        def set(self, key: str, value: Any) -> None
+        ```
+
+        Устанавливает значение для заданного ключа, а затем сохраняет изменения в JSON-файл.
+
+        <ParamField path="key" type="str" required>
+          Ключ для установки.
+        </ParamField>
+
+        <ParamField path="value" type="Any" required>
+          Значение, которое будет связано с ключом.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method get">
+        ```python
+        def get(self, key: str, default=None)
+        ```
+
+        Извлекает значение, связанное с заданным ключом. Работает идентично стандартному методу `dict.get()`.
+
+        <ParamField path="key" type="str" required>
+          Ключ для извлечения.
+        </ParamField>
+
+        <ParamField path="default" type="Any" default="None">
+          Значение, которое будет возвращено, если ключ не найден.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method pop">
+        ```python
+        def pop(self, key: str) -> Any
+        ```
+
+        Удаляет указанный ключ и связанное с ним значение из словаря, а затем сохраняет изменения в JSON-файл.
+
+        <ParamField path="key" type="str" required>
+          Ключ для удаления.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method reset">
+        ```python
+        def reset(self) -> None
+        ```
+
+        Очищает все данные из словаря и JSON-файла.
+      </Accordion>
+
+      <Accordion title="method update_from">
+        ```python
+        def update_from(self, **kwargs)
+        ```
+
+        Обновляет словарь парами ключ-значение из `kwargs`, а затем сохраняет изменения в JSON-файл.
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+
+  <Accordion title="Command">
+    ```python
+    @dataclass
+    class Command
+    ```
+    Класс, который возвращается в callback функцию команде.
+
+    <ParamField path="command" type="str">
+      Имя команды или псевдоним, который был использован.
+    </ParamField>
+
+    <ParamField path="args" type="list[str]">
+      Список разделенных аргументов после команды.
+
+      Разделение в основном через пробел, но если нужно передать одним аргументом текст с пробелами, можно использовать ковычки:
+      `.test arg1 arg2 "arg3 with many words"` -> `args = ["arg1", "arg2", "arg3 with many words"]`
+      `.test arg1 arg2 param="value with many words"` -> `args = ["arg1", "arg2", "param=value with many words"]`
+    </ParamField>
+
+    <ParamField path="raw_args" type="str">
+      Все, что идет после команды, в виде одной строки.
+    </ParamField>
+
+    <ParamField path="text" type="str">
+      Полный текст исходного сообщения.
+    </ParamField>
+
+    <ParamField path="params" type="org.telegram.messenger.SendMessagesHelper$SendMessageParams">
+      Объект с параметрами исходного сообщения (`peer`, `replyToMsg` и т.д.).
+    </ParamField>
+
+    <ParamField path="account" type="int">
+      Текущий аккаунт
+    </ParamField>
+
+
+    <ParamField path="html() -> str" type="func">
+      Функция, возвращающая текст исходного сообщения с HTML-разметкой.
+    </ParamField>
+
+    <ParamField path="markdown() -> str" type="func">
+      Функция, возвращающая текст исходного сообщения с Markdown-разметкой.
+    </ParamField>
+    <AccordionGroup>
+      <Accordion title="method answer">
+        ```python
+        def answer(text: str, **kwargs)
+        ```
+        Отправляет ответное сообщение по заданным параметрам.
+        `replyToMsg` и `replyToTopMsg` подставляются автоматически.
+
+        <ParamField path="text" type="str" required>
+          Текст нового сообщения
+        </ParamField>
+        
+        <ParamField path="kwargs">
+          Дополнительные параметры, которые передаются в [CactusUtils.send_message](/dev/utils/CactusUtils#send_message).
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method html">
+        ```python
+        def html(self) -> str
+        ```
+        Функция, возвращающая текст исходного сообщения с HTML-разметкой.
+
+        Возвращает `CactusUtils.HTML.unparse(self.text, list(self.params.entities.toArray()))`
+      </Accordion>
+
+      <Accordion title="method markdown">
+        ```python
+        def markdown(self) -> str
+        ```
+        Функция, возвращающая текст исходного сообщения с Markdown-разметкой.
+        
+        Возвращает `CactusUtils.Markdown.unparse(self.text, list(self.params.entities.toArray()))`
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+
+  <Accordion title="UriCallback">
+    ```python
+    @dataclass
+    class UriCallback
+    ```
+    Класс, который возвращается в callback функцию [MessageUri](/dev/utils/CactusUtils#messageuri) ссылки.
+
+    <ParamField path="message" type="MessageObject">
+      Объект сообщения, к которому привязана клавиатура.
+    </ParamField>
+
+    <ParamField path="cell" type="ChatMessageCell">
+      UI-элемент сообщения.
+    </ParamField>
+
+    <ParamField path="method" type="str">
+      Метод из ссылки, который сработал.
+    </ParamField>
+
+    <ParamField path="raw_url" type="str">
+      Ссылка, на которую было произведено нажатие
+    </ParamField>
+
+    <ParamField path="long_press" type="bool">
+      Длительное нажатие на кнопку.
+    </ParamField>
+
+    <AccordionGroup>
+      <Accordion title="method edit (edit_message)">
+        ```python
+        def edit_message(self, text: str, **kwargs) -> None
+        ```
+        Изменяет сообщение по заданным параметрам.
+
+        <ParamField path="text" type="str" required>
+          Текст нового сообщения
+        </ParamField>
+        
+        <ParamField path="kwargs">
+          Дополнительные параметры, которые передаются в [CactusUtils.edit_message](/dev/utils/CactusUtils#edit_message).
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method edit_markup">
+        ```python
+        def edit_markup(self, markup: Optional[Any] = None)
+        ```
+        Изменяет Inline-клавиатуру текущему сообщению, автоматически подставляя в [CactusUtils.edit_message_markup](/dev/utils/CactusUtils#edit_message_markup) UI-объект сообщения.
+      </Accordion>
+
+      <Accordion title="method delete (delete_message)">
+        ```python
+        def delete_message(self) -> None
+        ```
+        Удаляет сообщение.
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+
+  <Accordion title="Telegram">
+    ```python
+    class Telegram
+    ```
+
+    Класс `Telegram` предоставляет статические методы для взаимодействия с Telegram API, включая отправку запросов TLRPC, поиск сообщений и получение информации о пользователях, чатах, каналах и стикерпаках.
+    <AccordionGroup>
+      <Accordion title="class Result">
+
+        ```python
+        class Result:
+        ```
+
+        Внутренний класс, используемый для хранения результатов асинхронных запросов TLRPC.
+
+        <ParamField path="req_id" type="int">
+          **Идентификатор запроса.** Уникальный номер, присвоенный отправленному запросу.
+        </ParamField>
+
+        <ParamField path="response" type="TLObject">
+          **Объект ответа от Telegram API.** Содержит данные, полученные в случае успешного выполнения запроса.
+        </ParamField>
+
+        <ParamField path="error" type="TLRPC.TL_error">
+          **Объект ошибки TLRPC.** Содержит информацию об ошибке, если запрос завершился неудачей.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="class TLRPCException">
+        ```python
+        class TLRPCException(Exception):
+        ```
+
+        Исключение, вызываемое при получении ошибки TLRPC от Telegram API.
+
+        <ParamField path="req_id" type="int" required>
+          **Идентификатор запроса.** Уникальный номер запроса, который вызвал данную ошибку.
+        </ParamField>
+
+        <ParamField path="error" type="TLRPC.TL_error" required>
+          **Объект ошибки TLRPC.** Полный объект ошибки, возвращенный Telegram API.
+        </ParamField>
+
+        <ParamField path="code" type="int">
+          **Код ошибки.** Числовой код ошибки TLRPC.
+        </ParamField>
+
+        <ParamField path="text" type="str">
+          **Текст ошибки.** Подробное текстовое описание ошибки TLRPC.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method tlrpc_object">
+        ```python
+        @staticmethod
+        def tlrpc_object(request_class, **kwargs)
+        ```
+
+        Создает объект запроса TLRPC, устанавливая предоставленные аргументы как атрибуты класса запроса. Это удобный способ инициализировать объекты запросов.
+
+        <ParamField path="request_class" type="Any" required>
+          **Класс запроса TLRPC.** Например, `TLRPC.TL_messages_search` для поиска сообщений.
+        </ParamField>
+
+        <ParamField path="**kwargs" type="Any">
+          **Аргументы запроса.** Именованные аргументы, которые будут установлены как атрибуты создаваемого объекта запроса.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method send">
+        ```python
+        @classmethod
+        def send(
+            cls,
+            req,
+            callback: Optional[callable] = None, *,
+            wait_response: bool = True,
+            timeout: int = 10,
+            raise_errors: bool = True
+        ) -> Union[int, Result]
+        ```
+
+        Отправляет запрос TLRPC в Telegram API. Позволяет выбрать синхронное или асинхронное выполнение, а также настроить обработку ошибок и тайм-аутов.
+
+        <ParamField path="req" type="Any" required>
+          **Объект запроса TLRPC.** Сам запрос, который вы хотите отправить (например, `TLRPC.TL_messages_getMessages`).
+        </ParamField>
+
+        <ParamField path="callback" type="Optional[callable]" default="None">
+          **Функция обратного вызова.** Если `wait_response` равно `False`, эта функция будет вызвана с результатом и ошибкой после получения ответа.
+        </ParamField>
+
+        <ParamField path="wait_response" type="bool" default="True">
+          **Ожидать ли ответ.** Если `True`, метод будет блокироваться до получения ответа и возвращать объект `Result`. Если `False`, метод вернет идентификатор запроса немедленно.
+        </ParamField>
+
+        <ParamField path="timeout" type="int" default="10">
+          **Тайм-аут.** Максимальное время в секундах, которое метод будет ждать ответа, если `wait_response` равно `True`.
+        </ParamField>
+
+        <ParamField path="raise_errors" type="bool" default="True">
+          **Вызывать ли исключения.** Если `True` и запрос завершился ошибкой, будет вызвано исключение `TLRPCException`. Если `False`, ошибка будет возвращена внутри объекта `Result`.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="class SearchFilter">
+        ```python
+        class SearchFilter(Enum):
+        ```
+
+        Перечисление, представляющее различные фильтры для поиска сообщений. Используется для уточнения типа сообщений, которые вы ищете.
+
+        <ParamField path="GIF" type="str">
+        **GIF.** Фильтр для поиска GIF-изображений.
+        </ParamField>
+
+        <ParamField path="MUSIC" type="str">
+        **MUSIC.** Фильтр для поиска музыкальных файлов.
+        </ParamField>
+
+        <ParamField path="CHAT_PHOTOS" type="str">
+        **CHAT_PHOTOS.** Фильтр для поиска фотографий, отправленных в чат.
+        </ParamField>
+
+        <ParamField path="PHOTOS" type="str">
+        **PHOTOS.** Фильтр для поиска любых фотографий.
+        </ParamField>
+
+        <ParamField path="URL" type="str">
+        **URL.** Фильтр для поиска сообщений, содержащих URL-адреса.
+        </ParamField>
+
+        <ParamField path="DOCUMENT" type="str">
+        **DOCUMENT.** Фильтр для поиска документов.
+        </ParamField>
+
+        <ParamField path="PHOTO_VIDEO" type="str">
+        **PHOTO_VIDEO.** Фильтр для поиска фотографий и видео.
+        </ParamField>
+
+        <ParamField path="PHOTO_VIDEO_DOCUMENT" type="str">
+        **PHOTO_VIDEO_DOCUMENT.** Фильтр для поиска фотографий, видео и документов.
+        </ParamField>
+
+        <ParamField path="GEO" type="str">
+        **GEO.** Фильтр для поиска сообщений с геолокациями.
+        </ParamField>
+
+        <ParamField path="PINNED" type="str">
+        **PINNED.** Фильтр для поиска закрепленных сообщений.
+        </ParamField>
+
+        <ParamField path="MY_MENTIONS" type="str">
+        **MY_MENTIONS.** Фильтр для поиска сообщений, в которых упомянут текущий пользователь.
+        </ParamField>
+
+        <ParamField path="ROUND_VOICE" type="str">
+        **ROUND_VOICE.** Фильтр для поиска голосовых круглых сообщений.
+        </ParamField>
+
+        <ParamField path="CONTACTS" type="str">
+        **CONTACTS.** Фильтр для поиска сообщений с контактами.
+        </ParamField>
+
+        <ParamField path="VOICE" type="str">
+        **VOICE.** Фильтр для поиска голосовых сообщений.
+        </ParamField>
+
+        <ParamField path="VIDEO" type="str">
+        **VIDEO.** Фильтр для поиска видеосообщений.
+        </ParamField>
+
+        <ParamField path="PHONE_CALLS" type="str">
+        **PHONE_CALLS.** Фильтр для поиска информации о телефонных звонках.
+        </ParamField>
+
+        <ParamField path="ROUND_VIDEO" type="str">
+        **ROUND_VIDEO.** Фильтр для поиска видео круглых сообщений.
+        </ParamField>
+
+        <ParamField path="EMPTY" type="str">
+        **EMPTY.** Пустой фильтр, не применяет специфических ограничений по типу.
+        </ParamField>
+
+        <Accordion title="method to_TLRPC_object">
+        ```python
+        def to_TLRPC_object(self)
+        ```
+
+        Преобразует элемент перечисления `SearchFilter` в соответствующий объект TLRPC-фильтра сообщений, который можно использовать в запросах к Telegram API.
+        </Accordion>
+      </Accordion>
+
+      <Accordion title="method search_messages">
+        ```python
+        @classmethod
+        def search_messages(
+            cls,
+            dialog_id: int,
+            query: Optional[str] = None,
+            from_id: Optional[int] = None,
+            offset_id: int = 0,
+            limit: int = 20,
+            reply_message_id: Optional[int] = None,
+            top_message_id: Optional[int] = None,
+            filter: SearchFilter = SearchFilter.EMPTY,
+            **kwargs
+        ) -> Union[List[MessageObject], int]
+        ```
+
+        Осуществляет поиск сообщений в указанном диалоге, позволяя фильтровать по запросу, отправителю, смещению и типу содержимого.
+
+        <ParamField path="dialog_id" type="int" required>
+          **Идентификатор диалога.** ID чата, пользователя или канала, где будет производиться поиск.
+        </ParamField>
+
+        <ParamField path="query" type="Optional[str]" default="None">
+          **Текст запроса.** Строка для поиска в содержимом сообщений.
+        </ParamField>
+
+        <ParamField path="from_id" type="Optional[int]" default="None">
+          **Идентификатор отправителя.** ID пользователя, от которого должны быть получены сообщения.
+        </ParamField>
+
+        <ParamField path="offset_id" type="int" default="0">
+          **ID смещения.** Сообщения будут возвращены, начиная с этого ID (или после него).
+        </ParamField>
+
+        <ParamField path="limit" type="int" default="20">
+          **Лимит.** Максимальное количество сообщений, которое будет возвращено.
+        </ParamField>
+
+        <ParamField path="reply_message_id" type="Optional[int]" default="None">
+          **ID сообщения-ответа.** Если указано, поиск будет ограничен сообщениями, которые являются ответами на это конкретное сообщение.
+        </ParamField>
+
+        <ParamField path="top_message_id" type="Optional[int]" default="None">
+          **ID верхнего сообщения.** Используется в контексте тематических групп (форумов) для указания ID главного сообщения темы.
+        </ParamField>
+
+        <ParamField path="filter" type="SearchFilter" default="SearchFilter.EMPTY">
+          **Фильтр поиска.** Тип содержимого, по которому нужно фильтровать сообщения (например, `SearchFilter.PHOTOS`).
+        </ParamField>
+
+        <ParamField path="**kwargs" type="Any">
+          **Дополнительные параметры.** Любые другие параметры, которые будут переданы базовому методу `send`, такие как `wait_response` или `timeout`.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method get_user">
+        ```python
+        @staticmethod
+        def get_user(user_id: int)
+        ```
+
+        Получает объект пользователя по его идентификатору.
+
+        <ParamField path="user_id" type="int" required>
+          **Идентификатор пользователя.** Уникальный ID пользователя, информацию о котором вы хотите получить.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method input_user">
+        ```python
+        @staticmethod
+        def input_user(user_id: int)
+        ```
+
+        Получает объект `InputUser` по идентификатору пользователя. Этот объект используется в других запросах к Telegram API, которым требуется ссылка на пользователя.
+
+        <ParamField path="user_id" type="int" required>
+          **Идентификатор пользователя.** Уникальный ID пользователя.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method peer">
+        ```python
+        @staticmethod
+        def peer(peer_id: int)
+        ```
+
+        Получает объект `Peer` по идентификатору пира (пользователя, чата или канала). `Peer` представляет собой общую сущность в Telegram.
+
+        <ParamField path="peer_id" type="int" required>
+          **Идентификатор пира.** ID пользователя, чата или канала.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method input_peer">
+        ```python
+        @staticmethod
+        def input_peer(peer_id: int)
+        ```
+
+        Получает объект `InputPeer` по идентификатору пира (пользователя, чата или канала). `InputPeer` — это объект, который API использует для идентификации целевого диалога.
+
+        <ParamField path="peer_id" type="int" required>
+          **Идентификатор пира.** ID пользователя, чата или канала.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method get_sticker_set_by_short_name">
+        ```python
+        @classmethod
+        def get_sticker_set_by_short_name(cls, short_name: str, **kwargs)
+        ```
+
+        Получает информацию о наборе стикеров по его короткому имени (например, `t.me/addstickers/example`).
+
+        <ParamField path="short_name" type="str" required>
+          **Короткое имя набора стикеров.** Имя, используемое в ссылках для добавления стикеров.
+        </ParamField>
+
+        <ParamField path="**kwargs" type="Any">
+          **Дополнительные параметры.** Любые другие параметры, которые будут переданы базовому методу `send`.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method get_chat">
+        ```python
+        @classmethod
+        def get_chat(cls, chat_id: int, **kwargs)
+        ```
+
+        Получает информацию о групповом чате по его идентификатору.
+
+        <ParamField path="chat_id" type="int" required>
+          **Идентификатор чата.** ID группового чата, информацию о котором вы хотите получить.
+        </ParamField>
+
+        <ParamField path="**kwargs" type="Any">
+          **Дополнительные параметры.** Любые другие параметры, которые будут переданы базовому методу `send`.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method get_channel">
+        ```python
+        @classmethod
+        def get_channel(cls, channel_id: int, **kwargs) -> int
+        ```
+
+        Получает информацию о канале по его идентификатору.
+
+        <ParamField path="channel_id" type="int" required>
+          **Идентификатор канала.** ID канала, информацию о котором вы хотите получить.
+        </ParamField>
+
+        <ParamField path="**kwargs" type="Any">
+          **Дополнительные параметры.** Любые другие параметры, которые будут переданы базовому методу `send`.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method get_user_photos">
+        ```python
+        @classmethod
+        def get_user_photos(cls, user_id: int, limit: int = 1, **kwargs)
+        ```
+
+        Получает фотографии профиля пользователя.
+
+        <ParamField path="user_id" type="int" required>
+          **Идентификатор пользователя.** ID пользователя, чьи фотографии профиля вы хотите получить.
+        </ParamField>
+
+        <ParamField path="limit" type="int" default="1">
+          **Лимит.** Максимальное количество фотографий профиля для получения. По умолчанию `1`.
+        </ParamField>
+
+        <ParamField path="**kwargs" type="Any">
+          **Дополнительные параметры.** Любые другие параметры, которые будут переданы базовому методу `send`.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method get_channel_messages">
+        ```python
+        @classmethod
+        def get_channel_messages(
+            cls, channel: Union[int, str, Any], ids: Union[List[int], int], **kwargs
+        )
+        ```
+
+        Получает конкретные сообщения из канала по их идентификаторам.
+
+        <Warning>
+          **ВНИМАНИЕ:** Этот метод может не возвращать ожидаемый результат в полной мере. Если у вас есть информация или предложения по исправлению, пожалуйста, свяжитесь с @chillden4ik в Telegram.
+        </Warning>
+
+        <ParamField path="channel" type="Union[int, str, Any]" required>
+          **Канал.** Может быть передан как:
+
+            * **целое число:** ID канала.
+            * **строка:** короткое имя канала (username), которое будет автоматически разрешено.
+            * **любой другой объект:** объект канала, который может быть преобразован в `InputPeer` или `TL_inputChannel`.
+        </ParamField>
+
+        <ParamField path="ids" type="Union[List[int], int]" required>
+          **Идентификаторы сообщений.** Может быть одним целым числом (ID одного сообщения) или списком целых чисел (ID нескольких сообщений).
+        </ParamField>
+
+        <ParamField path="**kwargs" type="Any">
+          **Дополнительные параметры.** Любые другие параметры, которые будут переданы базовому методу `send`.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method delete_messages">
+        ```python
+        @classmethod
+        def delete_messages(cls, ids: Union[List[int], int], chat_id: int, topic_id: int = 0, for_all: bool = True)
+        ```
+
+        Удаляет одно или несколько сообщений в указанном чате.
+
+        <ParamField path="ids" type="Union[List[int], int]" required>
+          **Идентификаторы сообщений.** ID одного сообщения или список ID сообщений для удаления.
+        </ParamField>
+
+        <ParamField path="chat_id" type="int" required>
+          **Идентификатор чата.** ID чата, из которого будут удалены сообщения.
+        </ParamField>
+
+        <ParamField path="topic_id" type="int" default="0">
+          **Идентификатор топика.** Если чат является форумом, это ID топика, из которого удаляются сообщения. По умолчанию `0` для обычных чатов.
+        </ParamField>
+
+        <ParamField path="for_all" type="bool" default="True">
+          **Удалить для всех.** Если `True`, сообщения будут удалены для всех участников чата. Если `False`, сообщения будут удалены только для текущего пользователя.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method resolve_channel">
+        ```python
+        @classmethod
+        def resolve_channel(cls, username: str, *, callback: Optional[Callable[[Any], None]] = None)
+        ```
+
+        Разрешает короткое имя канала (username, например, `@telegram`) в полный объект канала. Может работать как синхронно (по умолчанию), так и асинхронно через обратный вызов.
+
+        <ParamField path="username" type="str" required>
+        **Короткое имя канала.** Username канала, который вы хотите разрешить (без символа `@`).
+        </ParamField>
+
+        <ParamField path="callback" type="Optional[Callable[[Any], None]]" default="None">
+        **Функция обратного вызова.** Если предоставлена, метод будет работать асинхронно, и эта функция будет вызвана с разрешенным объектом канала.
+        </ParamField>
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+  
+  <Accordion title="FileSystem">
+    ```python
+    class FileSystem
+    ```
+
+    Вспомогательный класс для управления файлами и директориями, предоставляющий методы для работы с базовыми, кеш- и временными директориями, а также для чтения и записи содержимого файлов. Все методы в этом классе являются статическими.
+
+    <AccordionGroup>
+      <Accordion title="method basedir">
+        ```python
+        @classmethod
+        def basedir(cls, *path: str)
+        ```
+
+        Возвращает базовую директорию приложения. Если предоставлены аргументы `path`, то будут созданы поддиректории внутри базовой директории, если они не существуют, и будет возвращен объект `File` для самого глубокого указанного пути.
+
+        <ParamField path="*path" type="str">
+          Необязательные компоненты пути для добавления к базовой директории.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method cachedir">
+        ```python
+        @classmethod
+        def cachedir(cls, *path: str)
+        ```
+
+        Возвращает директорию внешнего кеша приложения. Если предоставлены аргументы `path`, то будут созданы поддиректории внутри директории кеша, если они не существуют, и будет возвращен объект `File` для самого глубокого указанного пути.
+
+        <ParamField path="*path" type="str">
+          Необязательные компоненты пути для добавления к директории кеша.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method tempdir">
+        ```python
+        @classmethod
+        def tempdir(cls)
+        ```
+
+        Возвращает временную директорию специально для `cactuslib_temp_files` внутри директории кеша. Создает эту директорию, если она еще не существует.
+      </Accordion>
+
+      <Accordion title="method get_file_content">
+        ```python
+        @classmethod
+        def get_file_content(cls, file_path, mode: str = "rb")
+        ```
+
+        Читает и возвращает содержимое файла.
+
+        <ParamField path="file_path" type="str" required>
+          Путь к файлу.
+        </ParamField>
+
+        <ParamField path="mode" type="str" default="rb">
+          Режим открытия файла (например, `&quot;rb&quot;` для чтения бинарных данных, `&quot;r&quot;` для чтения текстовых данных).
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method get_temp_file_content">
+        ```python
+        @classmethod
+        def get_temp_file_content(
+            cls, filename: str, mode: str = "rb", delete_after: int = 0
+        )
+        ```
+
+        Читает и возвращает содержимое файла, расположенного во временной директории. При желании файл может быть запланирован на удаление через указанное количество секунд.
+
+        <ParamField path="filename" type="str" required>
+          Имя файла во временной директории.
+        </ParamField>
+
+        <ParamField path="mode" type="str" default="rb">
+          Режим открытия файла (например, `&quot;rb&quot;` для чтения бинарных данных, `&quot;r&quot;` для чтения текстовых данных).
+        </ParamField>
+
+        <ParamField path="delete_after" type="int" default="0">
+          Количество секунд, по истечении которых файл должен быть удален. Если `0`, файл не удаляется автоматически.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method write_file">
+        ```python
+        @classmethod
+        def write_file(cls, file_path, content, mode: str = "wb")
+        ```
+
+        Записывает содержимое в указанный файл.
+
+        <ParamField path="file_path" type="str" required>
+          Путь к файлу.
+        </ParamField>
+
+        <ParamField path="content" type="Any" required>
+          Содержимое для записи в файл.
+        </ParamField>
+
+        <ParamField path="mode" type="str" default="wb">
+          Режим открытия файла (например, `&quot;wb&quot;` для записи бинарных данных, `&quot;w&quot;` для записи текстовых данных).
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method write_temp_file">
+        ```python
+        @classmethod
+        def write_temp_file(
+            cls, filename: str, content, mode="wb", delete_after: int = 0
+        )
+        ```
+
+        Записывает содержимое в файл во временной директории. При желании файл может быть запланирован на удаление через указанное количество секунд.
+
+        <ParamField path="filename" type="str" required>
+          Имя файла для создания во временной директории.
+        </ParamField>
+
+        <ParamField path="content" type="Any" required>
+          Содержимое для записи в файл.
+        </ParamField>
+
+        <ParamField path="mode" type="str" default="wb">
+          Режим открытия файла (например, `&quot;wb&quot;` для записи бинарных данных, `&quot;w&quot;` для записи текстовых данных).
+        </ParamField>
+
+        <ParamField path="delete_after" type="int" default="0">
+          Количество секунд, по истечении которых файл должен быть удален. Если `0`, файл не удаляется автоматически.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method delete_file_after">
+        ```python
+        @classmethod
+        def delete_file_after(cls, file_path, seconds: int = 0)
+        ```
+
+        Удаляет файл после указанной задержки. Если `seconds` равно `0`, файл удаляется немедленно.
+
+        <ParamField path="file_path" type="str" required>
+          Путь к файлу для удаления.
+        </ParamField>
+
+        <ParamField path="seconds" type="int" default="0">
+          Количество секунд ожидания перед удалением файла. Если `0`, удаление происходит немедленно.
+        </ParamField>
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+
+  <Accordion title="Uri">
+    ```python
+    @dataclass
+    class Uri
+    ```
+    Класс для создания URI-ссылки для хендлера с callback'ом.
+
+    <ParamField path="plugin_id" type="str" required>
+      ID плагина.
+    </ParamField>
+
+    <ParamField path="command" type="str" required>
+      Команда.
+    </ParamField>
+
+    <ParamField path="kwargs" type="dict[str, str]">
+      Дополнительные аргументы, передающиеся в функцию callback'а.
+    </ParamField>
+
+    ```python Пример использования icon="python"
+    plugin_id = "testplugin"
+    cmd_url = CactusUtils.Uri(plugin_id=plugin_id, command="test", kwargs={"message": "hello with love from cactus!"}).string()
+    ... # данную ссылку можно вставлять куда хотите, работать будет из любого места
+
+    ... # в классе плагина
+    @uri("test") # from cactuslib import uri
+    def test_uri_callback(self, message: str):
+       ...
+    ```
+    <AccordionGroup>
+      <Accordion title="method create">
+        ```python
+        @classmethod
+        def create(cls, plugin: BasePlugin, cmd: str, **kwargs) -> str
+        ```
+        Создает экземпляр Uri, автоматически подставляя `plugin_id=plugin.id` и возвращая сразу строку с ссылкой.
+
+        ```python Пример использования icon="python"
+        cmd_url = CactusUtils.Uri.create(self, "test", message="hello with love from cactus!")
+        ...
+        ```
+      </Accordion>
+
+      <Accordion title="method string">
+        ```python
+        def string(self) -> str
+        ```
+        Возвращает сгенерированную ссылку формата `tg://cactus/{plugin_id}/{command}?{urlencode(kwargs)}`
+      </Accordion>
+
+      <Accordion title="decorator callback">
+        ```python
+        @staticmethod
+        def callback(method: str)
+        ```
+        Декоратор для создания callback функции на определенный метод.
+
+        <ParamField path="method" type="str" required>
+          Метод
+        </ParamField>
+
+        ```python Пример использования icon="python"
+        ... # класс плагина
+        @CactusUtils.Uri.callback("test")
+        def test_uri_callback(self, **kwargs):
+            ...
+        ```
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+
+  <Accordion title="MessageUri">
+    ```python
+    class MessageUri(Uri)
+    ```
+    Класс для создания URI-ссылки для хендлера с callback'ом, которая будет обрабатываться только в сообщениях.
+    Всё то же самое, что и в [Uri](/dev/utils/CactusUtils#uri), но есть изменения:
+    - `/cactus/` заменяется на `/cactusX/`.
+    - В callback функцию возвращается экземпляр `CactusUtils.UriCallback` с необходимыми данными первым аргументом.
+
+    ```python Пример использования icon="python"
+    plugin_id = "testplugin"
+    cmd_url = CactusUtils.MessageUri(plugin_id=plugin_id, command="test", kwargs={"message": "hello from message with love from cactus!"}).string()
+    # или CactusUtils.MessageUri.create(self, "test", message="hello from message with love from cactus!")
+    ... # отправляете сообщение с данной ссылкой, её можно также внутри текста оставлять и будет работать как "кликабельная" кнопка.
+
+    ... # в классе плагина
+    @CactusUtils.MessageUri.callback("test")
+    def test_message_uri_callback(self, params: CactusUtils.UriCallback, message: str):
+       ...
+    ```
+    <AccordionGroup>
+      <Accordion title="decorator callback">
+        ```python
+        @staticmethod
+        def callback(method: str, support_long_click: bool = False)
+        ```
+        Декоратор для создания callback функции на определенный метод.
+        
+        <ParamField path="method" type="str" required>
+          Метод
+        </ParamField>
+
+        <ParamField path="support_long_click" type="bool" default="False">
+          Будет ли вызываться ваша функция, если было произведено длительное нажатие на ссылку (проверять можно через параметр `long_press` в [UriCallback](/dev/utils/CactusUtils#uricallback))
+          
+          На обычное нажатие не влияет.
+        </ParamField>
+
+        ```python Пример использования icon="python"
+        ... # класс плагина
+        @CactusUtils.Uri.callback("test")
+        def test_uri_callback(self, **kwargs):
+            ...
+        ```
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+    
+  <Accordion title="Plugin (CactusModule)">
+    ```python
+    class CactusModule(BasePlugin)
+    ```
+    Базовый класс для плагинов с разными фичами.
+    <Warning>
+    Обязательно нужно наследовать свой класс плагина от данного класса, иначе система плагинов может работать неправильно.
+    </Warning>
+    
+    <ParamField path="utils" type="CactusUtils">
+      Вы всегда можете обратиться к утилитам с помощью `self.utils`
+    </ParamField>
+
+    <ParamField path="__min_lib_version__" type="str version X.X.X">
+      Минимальная необходимая версия CactusLib для работы вашего плагина.
+      Если текущая версия меньше минимальной требуемой, плагин выдаст ошибку при загрузке.
+    </ParamField>
+
+    <ParamField path="strings" type="dict[str, dict[str, str]]">
+      [Локализованные строки](/dev/base-class#%D0%BB%D0%BE%D0%BA%D0%B0%D0%BB%D0%B8%D0%B7%D0%B0%D1%86%D0%B8%D1%8F-i18n).
+    </ParamField>
+
+    <AccordionGroup>
+      <Accordion title="method open_plugin_settings">
+        ```python
+        def open_plugin_settings(self)
+        ```
+        Метод, открывающий экран с настройками плагина.
+      </Accordion>
+
+      <Accordion title="method string">
+        ```python
+        def string(self, key: str, *args, default: Optional[str] = None, locale: str = None, **kwargs) -> str | Any
+        ```
+        Метод, позволяющий получить значение из словаря `strings` по ключу и текущему языку.
+      </Accordion>
+
+      <Accordion title="methods log | debug | warn | info | error">
+        ```python
+        def log(self, message: str) -> None: ...
+        def debug(self, message: str) -> None: ...
+        def warn(self, message: str) -> None: ...
+        def info(self, message: str) -> None: ...
+        def error(self, message: str) -> None: ...
+        ```
+        Методы для логирования по уровню. На выход в `logcat` идёт лог формата: `[level] [__id__] {message}`
+        ID плагина подставляется автоматически.
+        
+        <ParamField path="message" type="str" required>
+          Текст лога
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method answer">
+        ```python
+        def answer(
+            self, params,
+            text: str, *,
+            parse_message: bool = True,
+            parse_mode: str = "HTML",
+            markup=None, **kwargs
+        )
+        ```
+        Методы для отправки ответного сообщения по параметрам.
+        
+        <ParamField path="params" type="org.telegram.messenger.SendMessagesHelper$SendMessageParams" required>
+          Объект с параметрами исходного сообщения.
+        </ParamField>
+        
+        <ParamField path="text" type="str" required>
+          Текст отправляемого сообщения.
+        </ParamField>
+        
+        <ParamField path="parse_message" type="bool" default="True">
+          Разбирать ли текст на [HTML-разметку или Markdown-разметку](/dev/parsing).
+        </ParamField>
+        
+        <ParamField path="parse_mode" type="str" default="HTML">
+          Режим парсинга. Может быть `"HTML"` или `"MARKDOWN"`.
+        </ParamField>
+        
+        <ParamField path="markup" type="list[dict] | CactusUtils.Inline.Markup | ..." default="None">
+          Объект с [Inline клавиатурой](/dev/inline).
+        </ParamField>
+        
+        <ParamField path="**kwargs">
+          Дополнительные параметры, которые передаются в [CactusUtils.send_message](/dev/utils/CactusUtils#send_message)
+        </ParamField>
+      </Accordion>
+    </AccordionGroup>
+
+
+  </Accordion>
+
+  <Accordion title="Inline">
+    ```python
+    class Inline
+    ```
+    Класс с методами для создания [Inline-клавиатуры](/dev/inline).
+    
+    <AccordionGroup>
+      <Accordion title="method CallbackData">
+        ```python
+        def CallbackData(plugin_id: str, method: str, **kwargs) -> str
+        ```
+        Создание данных для callback data параметра кнопки.
+        
+        <ParamField path="plugin_id" type="str" required>
+          ID плагина (`self.id` в плагине)
+        </ParamField>
+
+        <ParamField path="method" type="str">
+          Имя метода, который будет вызван при нажатии.
+        </ParamField>
+
+        <ParamField path="**kwargs">
+          Дополнительные аргументы, которые будут переданы в функцию.
+        </ParamField>
+
+        ```python Пример кнопки с callback функцией icon="python"
+        # Создаем кнопку с callback'ом
+        callback_data=CactusUtils.Inline.CallbackData(
+            plugin_id=self.id,
+            method="on_button_click",
+            arg1="value1",
+            arg2="value2",
+            # ...
+        )
+        ```
+      </Accordion>
+
+      <Accordion title="method Button">
+        ```python
+        def Button(
+            text: str, *,
+            url: Optional[str] = None,
+            callback_data: Optional[str] = None,
+            query: Optional[str] = None,
+            requires_password: Optional[bool] = None,
+            copy: Optional[str] = None,
+            **kwargs
+        ) -> TLRPC.KeyboardButton
+        ```
+        Создание объекта кнопки по параметрам.
+
+        Обязательно должен быть указан один любой из аргументов после `text`.
+        
+        <ParamField path="text" type="str" required>
+          Текст кнопки.
+        </ParamField>
+
+        <ParamField path="url" type="str">
+          URL-адрес, который откроется при нажатии.
+        </ParamField>
+
+        <ParamField path="callback_data" type="str">
+          Строка с данными, которая будет отправлена обратно вашему плагину при нажатии. **Это основной способ обработки нажатий.**
+          
+          Получаем с помощью метода [CallbackData](/dev/utils/CactusUtils#inline:callbackdata)
+        </ParamField>
+
+        <ParamField path="query" type="str">
+          Строка, которая будет вставляться напрямую в поле ввода сообщения при нажатии на кнопку.
+        </ParamField>
+
+        <ParamField path="copy" type="str">
+          Текст, который будет скопирован в буфер обмена при нажатии на кнопку.
+        </ParamField>
+      </Accordion>
+
+      <Accordion title="method to_json">
+        ```python
+        def to_json(btn: TLRPC.KeyboardButton) -> dict
+        ```
+        Возвращает словарь с данными кнопки для более удобной работы.
+        
+        <ParamField path="btn" type="TLRPC.KeyboardButton" required>
+          Кнопка
+        </ParamField>
+      </Accordion>
+    
+      <Accordion title="class Markup">
+        ```python
+        class Markup:
+            def __init__(
+                self, is_global: bool = False,
+                on_sent: Optional[Callable] = None,
+                *args, **kwargs
+            )
+        ```
+        Класс для создания [Inline-клавиатуры](/dev/inline).
+        
+        <ParamField path="is_global" type="bool" default="False">
+          Если `True`, то сообщение будет отправлено в чат с метаданными внутри текста сообщения. Это позволит увидеть *всем пользователям с CactusLib* данную клавиатуру.
+        </ParamField>
+
+        <ParamField path="on_sent" type="callable">
+          Функция, которая будет вызвана после отправки сообщения с клавиатурой и полной инициализации.
+
+          <Warning>
+          Если вы используете `is_global=True`, то данный параметр будет проигнорирован.
+          </Warning>
+        </ParamField>
+
+        <ParamField path="args, kwargs">
+          Опциональные аргументы, которые будут переданы в функцию `on_sent`.
+        </ParamField>
+
+        <AccordionGroup>
+          <Accordion title="method add_row">
+            ```python
+            def add_row(*btns) -> "Markup"
+            ```
+            Добавляет ряд кнопок к клавиатуре.
+
+            В качестве аргумента можно приводить список, тогда все кнопки из него будут добавлены в ряд.
+
+            Метод возвращает себя, то есть `self` для удобства.
+            
+            <ParamField path="*btns" type="dict | list[dict | TLRPC.KeyboardButton] | TLRPC.KeyboardButton" required>
+              Кнопки :D
+            </ParamField>
+          </Accordion>
+
+          <Accordion title="method to_url_with_data">
+            ```python
+            def to_url_with_data() -> str
+            ```
+            Создает ссылку с метаданными о текущей клавиатуре внутри.
+            Данную ссылку в сообщении будет видеть CactusLib и создавать клавиатуру из данных в ссылке.
+            
+            Возвращает строку типа `tg://cactus/mdata/{compressed_data}`
+          </Accordion>
+
+          <Accordion title="method result">
+            ```python
+            @property
+            def result() -> TLRPC.TL_replyInlineMarkup
+            ```
+            Получение собранной клавиатуры в виде `TLRPC` объекта для дальнейшего использования.
+          </Accordion>
+        </AccordionGroup>
+      </Accordion>
+    
+      <Accordion title="class CallbackParams">
+        ```python
+        @dataclass
+        class CallbackParams
+        ```
+        Класс, который возвращается в callback функцию кнопки.
+
+        <ParamField path="message" type="MessageObject">
+          Объект сообщения, к которому привязана клавиатура.
+        </ParamField>
+
+        <ParamField path="cell" type="ChatMessageCell">
+          UI-элемент сообщения.
+        </ParamField>
+
+        <ParamField path="button" type="Optional[TLRPC.KeyboardButton]" default="None">
+          Кнопка, на которую было произведено нажатие.
+        </ParamField>
+
+        <ParamField path="is_long" type="bool">
+          Длительное нажатие на кнопку.
+        </ParamField>
+
+        <AccordionGroup>
+          <Accordion title="method edit (edit_message)">
+            ```python
+            def edit_message(self, text: str, **kwargs) -> None
+            ```
+            Изменяет сообщение по заданным параметрам.
+
+            <ParamField path="text" type="str" required>
+              Текст нового сообщения
+            </ParamField>
+            
+            <ParamField path="kwargs">
+              Дополнительные параметры, которые передаются в [CactusUtils.edit_message](/dev/utils/CactusUtils#edit_message).
+            </ParamField>
+          </Accordion>
+
+          <Accordion title="method edit_markup">
+            ```python
+            def edit_markup(self, markup: Optional[Any] = None)
+            ```
+            Изменяет Inline-клавиатуру текущему сообщению, автоматически подставляя в [CactusUtils.edit_message_markup](/dev/utils/CactusUtils#edit_message_markup) UI-объект сообщения.
+          </Accordion>
+
+          <Accordion title="method delete (delete_message)">
+            ```python
+            def delete_message(self) -> None
+            ```
+            Удаляет сообщение.
+          </Accordion>
+        </AccordionGroup>
+      </Accordion>
+    
+      <Accordion title="decorator on_click">
+        ```python
+        @classmethod
+        def on_click(cls, method: str, support_long_click: bool = False)
+        ```
+        Создает из метода callback-функцию для кнопки с методом, совпадающим с переданным `method` параметром.
+        
+        <ParamField path="method" type="str" required>
+          Метод
+        </ParamField>
+
+        <ParamField path="support_long_click" type="bool" default="False">
+          Будет ли вызываться ваша функция, если было произведено длительное нажатие на кнопку (проверять можно через параметр `is_long` в [CallbackParams](/dev/utils/CactusUtils#inline:class-callbackparams))
+          
+          На обычное нажатие не влияет.
+        </ParamField>
+
+        ```python Пример использования icon="python"
+        # ... в классе плагина
+        @CactusUtils.Inline.on_click("testbutton")
+        def test_button_callback(self, params: CactusUtils.Inline.CallbackParams):
+            ...
+        ```
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+
+  <Accordion title="HTML">
+    ```python
+    class HTML
+    ```
+    Все методы являются статичными и их можно вызывать без инициализации класса.
+
+    <AccordionGroup>
+      <Accordion title="method parse">
+        ```python
+        def parse(text: str, custom_emoji: int = 1) -> dict
+        ```
+        
+        <ParamField path="text" type="str" required>
+          Текст для парсинга HTML разметки.
+        </ParamField>
+
+        <ParamField path="custom_emoji" type="int" required default="1">
+          Тип Premium-эмодзи для распознания и отправки.
+
+          `0` (`NOT_PREMIUM`) - убрать все премиум-эмодзи и оставить только обычные, которые были внутри тега.
+
+          `1` (`TELEGRAM_PREMIUM`) - разрешить обычные премиум эмодзи.
+
+          `2` (`CACTUS_PREMIUM`) - заменить все теги типа `<emoji id=123456789>❤️</emoji>` на `<a href='tg://cactus/emoji/123456789'>❤️</a>`, которые будут преобразовываться CactusLib'ом и видны всем, у кого также установлен соответствующий плагин.
+        </ParamField>
+
+        Возвращает словарь с двумя ключами:
+        - `message (str)`
+        - `entities (list[CactusUtils.RawEntity])`
+      </Accordion>
+
+      <Accordion title="method unparse">
+        ```python
+        def unparse(text: str, entities: list) -> str
+        ```
+        
+        <ParamField path="text" type="str" required>
+          Текст для распаковывания всех энтити
+        </ParamField>
+
+        <ParamField path="entities" type="list[org.telegram.tgnet.TLRPC.MessageEntity]" required>
+          Список со всеми entity текста.
+        </ParamField>
+
+        Возвращает изначальную строку со всеми тегами.
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+
+  <Accordion title="Markdown">
+    ```python
+    class Markdown
+    ```
+    Все методы являются статичными и их можно вызывать без инициализации класса.
+
+    <AccordionGroup>
+      <Accordion title="method parse">
+        ```python
+        def parse(text: str, strict: bool = False, custom_emoji: int = 1) -> dict
+        ```
+        
+        <ParamField path="text" type="str" required>
+          Текст для парсинга Markdown разметки.
+        </ParamField>
+
+        <ParamField path="strict" type="bool" default="False" />
+
+        <ParamField path="custom_emoji" type="int" required default="1">
+          Тип Premium-эмодзи для распознания и отправки.
+
+          `0` (`NOT_PREMIUM`) - убрать все премиум-эмодзи и оставить только обычные, которые были внутри тега.
+
+          `1` (`TELEGRAM_PREMIUM`) - разрешить обычные премиум эмодзи.
+
+          `2` (`CACTUS_PREMIUM`) - заменить все теги типа `[❤️](123456789)` на `[❤️](tg://cactus/emoji/123456789)`, которые будут преобразовываться CactusLib'ом и видны всем, у кого также установлен соответствующий плагин.
+        </ParamField>
+
+        Возвращает словарь с двумя ключами:
+        - `message (str)`
+        - `entities (list[CactusUtils.RawEntity])`
+      </Accordion>
+
+      <Accordion title="method unparse">
+        ```python
+        def unparse(text: str, entities: list) -> str
+        ```
+        
+        <ParamField path="text" type="str" required>
+          Текст для распарсивания всех энтити
+        </ParamField>
+
+        <ParamField path="entities" type="list[org.telegram.tgnet.TLRPC.MessageEntity]" required>
+          Список со всеми entity текста.
+        </ParamField>
+
+        Возвращает изначальную строку со всеми delim'ами.
+      </Accordion>
+    </AccordionGroup>
+  </Accordion>
+
+  <Accordion title="RawEntity">
+    ```python
+    @dataclass
+    class RawEntity
+    ```
+
+    <ParamField path="type" type="TLEntityType" required>
+      Тип entity
+    </ParamField>
+
+    <ParamField path="offset" type="int" required>
+      Позиция начала текста
+    </ParamField>
+
+    <ParamField path="length" type="int" required>
+      Длина текста внутри тега
+    </ParamField>
+
+    <ParamField path="language" type="str">
+      Язык программирования.
+      
+      Используется в `TLRPC.TL_messageEntityPre` при `type == TLEntityType.PRE`.
+    </ParamField>
+
+    <ParamField path="url" type="str">
+      Ссылка.
+      
+      Используется в `TLRPC.TL_messageEntityTextUrl` при `type == TLEntityType.TEXT_LINK`.
+    </ParamField>
+
+    <ParamField path="document_id" type="int">
+      ID Premium-эмодзи.
+      
+      Используется в `TLRPC.TL_messageEntityCustomEmoji` при `type == TLEntityType.CUSTOM_EMOJI`
+    </ParamField>
+
+    <ParamField path="collapsed" type="bool">
+      Добавить ли возможность скрывать цитату.
+      
+      Используется в `TLRPC.TL_messageEntityBlockquote` при `type == TLEntityType.BLOCKQUOTE`
+    </ParamField>
+
+    <Accordion title="method to_tlrpc_object">
+      ```python
+      def to_tlrpc_object(self) -> TLRPC.MessageEntity
+      ```
+
+      Возвращает созданный объект типа `TLRPC.MessageEntity`.
+    </Accordion>
+  </Accordion>
+
+  <Accordion title="TLEntityType">
+    ```python
+    class TLEntityType(Enum)
+    ```
+
+    <ParamField path="CODE" type="TLRPC.TL_messageEntityCode" />
+    <ParamField path="PRE" type="TLRPC.TL_messageEntityPre" />
+    <ParamField path="STRIKETHROUGH" type="TLRPC.TL_messageEntityStrike" />
+    <ParamField path="TEXT_LINK" type="TLRPC.TL_messageEntityTextUrl" />
+    <ParamField path="BOLD" type="Tentity, TLRPC.TL_messageEntityBold" />
+    <ParamField path="ITALIC" type="TLRPC.TL_messageEntityItalic" />
+    <ParamField path="UNDERLINE" type="TLRPC.TL_messageEntityUnderline" />
+    <ParamField path="SPOILER" type="TLRPC.TL_messageEntitySpoiler" />
+    <ParamField path="CUSTOM_EMOJI" type="TLRPC.TL_messageEntityCustomEmoji" />
+    <ParamField path="BLOCKQUOTE" type="TLRPC.TL_messageEntityBlockquote" />
+
+    <Accordion title="method from_">
+      ```python
+      @classmethod
+      def _from(cls, entity: TLRPC.MessageEntity) -> TLEntityType
+      ```
+
+      Возвращает тип на основе переданного entity.
+    </Accordion>
+  </Accordion>
+</AccordionGroup>

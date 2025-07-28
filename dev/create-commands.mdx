@@ -1,0 +1,144 @@
+---
+title: "Создание команд"
+description: "Научитесь создавать команды легко и просто!"
+icon: "diamonds-4"
+---
+
+Декоратор `@command` — это основной способ регистрации команд, на которые будут реагировать пользователи.
+
+## Аргументы декоратора `@command`
+
+```python
+@command(
+    command: Optional[str] = None,
+    aliases: Optional[List[str]] = None,
+    doc: Optional[str] = None,
+    enabled: Optional[Union[str, bool]] = None
+)
+```
+
+<ParamField path="command" type="str">
+  Имя команды. Если не указано, используется имя функции.
+</ParamField>
+
+<ParamField path="aliases" type="list[str]">
+  Список (list) строковых псевдонимов для команды. Например, `aliases=["e", "exec"]`.
+</ParamField>
+
+<ParamField path="doc" type="str">
+  Ключ для строки с описанием команды из словаря `strings` (или само описание). Это описание будет видно в меню `.chelp`, в меню установки плагина и в списке плагинов.
+</ParamField>
+
+<ParamField path="enabled" type="str | bool">
+  Позволяет связать состояние команды (включена/выключена) с настройкой плагина.
+      * `bool`: `True` (по умолчанию) или `False`.
+      * `str`: Ключ булевой настройки (`Switch`) из `create_settings()`. Команда будет активна, только если эта настройка включена.
+</ParamField>
+
+## <Icon icon="object-subtract" size={24} iconType="solid" /> `CactusUtils.Command`
+
+В функцию команды всегда передается объект [`CactusUtils.Command`](/dev/utils/CactusUtils#command), который содержит всю необходимую информацию о вызове.
+
+## Примеры
+
+**1. Простая команда с псевдонимами и описанием**
+
+```python pingpong.plugin icon="python" lines expandable
+class MyPlugin(CactusUtils.Plugin):
+    strings = {
+        "en": {
+            "PING_DOC": "Checks if the plugin is working.",
+            "pong": "🏓 PONG!",
+        },
+        "ru": {
+            "PING_DOC": "Проверяет, работает ли плагин.",
+            "pong": "🏓 ПОНГ!",
+        }
+    }
+
+    @command(aliases=["p"], doc="PING_DOC")
+    def ping(self, cmd: CactusUtils.Command):
+        # Используем `answer` для отправки ответа
+        cmd.answer(self.string("pong"))
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+    
+    def _on_sent_ping(self, params: CactusUtils.Inline.CallbackParams):
+        # Редактируем сообщение
+        params.edit(self.string("pong"))
+
+        # Удаляем сообщение через 5 секунд
+        threading.Timer(5, lambda: params.delete()).start()
+
+    @command(aliases=["p2"], doc="PING_DOC")
+    def ping2(self, cmd: CactusUtils.Command):
+        # Используем `on_sent` для редактирования сообщения после отправки
+        cmd.answer("...", on_sent=lambda params: self._on_sent_ping(params))
+
+        return HookResult(strategy=HookStrategy.CANCEL)    
+```
+
+**Вызов:** `.ping` или `.p`.
+
+В `.chelp`: `.ping - Checks if the plugin is working.` или `.ping - Проверяет, работает ли плагин.`
+
+**2. Команда с аргументами**
+
+```python echo.plugin icon="python" lines expandable
+class MyPlugin(CactusUtils.Plugin):
+    @command(doc="Повторяет ваши слова")
+    def echo(self, cmd: CactusUtils.Command):
+        if not cmd.raw_args:
+            cmd.answer("Мне нечего повторять.")
+            return HookResult(strategy=HookStrategy.CANCEL)
+        
+        # Используем HTML-безопасную версию для избежания инъекций
+        safe_text = self.utils.escape_html(cmd.raw_args)
+        cmd.answer(f"Вы сказали: <b>{safe_text}</b>")
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+```
+
+**Вызов:** `.echo Привет, мир!`
+**Ответ:** `Вы сказали: <b>Привет, мир!</b>`
+
+**3. Команда, зависящая от настройки**
+
+```python extraX.plugin icon="python" lines expandable
+class MyPlugin(CactusUtils.Plugin):
+    def create_settings(self):
+        # В настройках плагина
+        return [Switch(key="extra_feature_enabled", text="Включить фичу X", default=False)]
+
+    @command(doc="Команда для фичи X", enabled="extra_feature_enabled")
+    def extra_cmd(self, cmd: CactusUtils.Command):
+        cmd.answer("Фича X работает!")
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+```
+
+Эта команда будет работать, только если пользователь включит опцию "Включить фичу X" в настройках вашего плагина.
+
+
+**4. Команда, которая ожидает отправления сообщения, а после срабатывает**
+
+```python test.plugin icon="python" lines expandable
+class MyPlugin(CactusUtils.Plugin):
+    def _on_sent(self, params: CactusUtils.Inline.CallbackParams):
+        # Вы можете сделать что угодно с сообщением, которое отправилось
+
+        # Вы можете изменить текст
+        params.edit("Edited message")
+
+        # Вы можете отправить сообщение в ответ на исходное
+        self.utils.send_message(params.message.getDialogId(), "Ответ на исходное сообщение", replyToMsg=params.message)
+
+        # Вы можете удалить сообщение
+        params.delete()
+
+    @command()
+    def test(self, cmd: CactusUtils.Command):
+        cmd.answer("Ожидайте...", on_sent=lambda params: self._on_sent(params))
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+```

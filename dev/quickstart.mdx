@@ -1,0 +1,89 @@
+---
+title: "Начало"
+description: "CactusLib создан, чтобы сделать разработку плагинов для Exteragram простой и приятной. Следуя этому руководству, вы сможете быстро создать свой первый плагин."
+icon: "play"
+---
+
+<Steps>
+  <Step title="Настройка окружения">
+    Убедитесь, что вы настроили среду для разработки плагинов, как описано в [официальной документации Exteragram](https://plugins.exteragram.app/docs/setup). Вам понадобится установленный **Python 3.8**.
+  </Step>
+  <Step title="Создание плагина">
+    Создайте файл с расширением `.plugin` и следуйте [начальным инструкциям](https://plugins.exteragram.app/docs/first-plugin).
+  </Step>
+  <Step title="Импорт CactusLib">
+    Дальнейший первый шаг в коде вашего плагина — импортировать необходимые компоненты из CactusLib. CactusLib должен быть установлен в вашем Exteragram.
+
+    Скопируйте необходимый вам кусок кода ниже и вставьте в плагин.
+
+    ```python FirstPlugin.plugin icon="python"
+    try:
+        # Главный класс-обертка и декораторы
+        from cactuslib import CactusUtils, command
+    except (ImportError, ModuleNotFoundError):
+        # Если CactusLib не найден, лучше прервать загрузку плагина.
+        raise Exception("Необходим CactusLib. Пожалуйста, установите его из @CactusPlugins.")
+    ```
+
+  </Step>
+  <Step title="Создание класса плагина">
+    Ваш основной класс плагина **обязательно** должен наследоваться от [`CactusUtils.Plugin`](/dev/utils/CactusUtils#plugin-cactusmodule) (или его псевдонимов `CactusUtils.CactusModule`, `CactusUtils.CactusPlugin`). Это дает вашему плагину доступ ко всем утилитам.
+
+    ```python FirstPlugin.plugin icon="python"
+    __name__ = "Мой Первый Плагин"
+    __description__ = "Плагин, который приветствует мир."
+    __id__ = "my_first_plugin"
+    __version__ = "1.0"
+    __author__ = "@MyUsername"
+
+    # ... импорты ...
+
+    class MyFirstPlugin(CactusUtils.Plugin):
+        # Здесь будет логика вашего плагина
+        pass
+    ```
+  </Step>
+  <Step title='"Hello, world!"'>
+    Давайте создадим простую команду, которая будет отправлять "Hello, World\!" в ответ. Для этого мы используем декоратор `@command`.
+
+    ```python FirstPlugin.plugin icon="python" lines expandable
+    # ... метаданные и импорты ...
+
+    class MyFirstPlugin(CactusUtils.Plugin):
+        def on_plugin_load(self):
+            # Обязательно вызывайте родительский метод! Это критически важно.
+            super().on_plugin_load()
+            
+            # Этот метод вызывается при загрузке плагина
+            self.info("Мой первый плагин успешно загружен!")
+        
+        def on_plugin_unload(self):
+            # Обязательно вызывайте родительский метод! Это критически важно.
+            super().on_plugin_unload()
+
+            # Этот метод вызывается при выгрузке плагина
+            self.info("Мой первый плагин успешно выгружен!")
+
+        @command(doc="Отправляет приветствие")
+        def hello(self, cmd: CactusUtils.Command):
+            # cmd - это объект с информацией о вызванной команде
+            # cmd.answer() - это удобный метод для ответа в тот же чат
+            cmd.answer("Hello, World from MyFirstPlugin!")
+
+            return HookResult(strategy=HookStrategy.CANCEL)
+    ```
+
+    ### Разбор кода:
+
+    * **`on_plugin_load()`**: Специальный метод, который вызывается один раз при загрузке плагина. Идеальное место для инициализации различных данных.
+    * **`on_plugin_unload()`**: Аналогично `on_plugin_load()`, но вызывается при выгрузке плагина.
+    * [**`self.info("...")`**](/dev/utils/CactusUtils#plugin-cactusmodule:methods-log-debug-warn-info-error): Метод для вывода сообщения в logcat с префиксом `[my_first_plugin] [INFO]`.
+    * **`@command(...)`**: Декоратор, который превращает обычный метод Python в команду, доступную пользователю.
+        * `doc="..."`: Описание команды, которое будет видно в меню `.chelp`.
+    * **`hello(self, cmd: CactusUtils.Command)`**:
+        * `cmd`: Объект [`CactusUtils.Command`](/dev/utils/CactusUtils#command), содержащий всю информацию о вызове: аргументы, исходное сообщение, ID чата и т.д.
+    * [**`cmd.answer("...")`**](/dev/utils/CactusUtils#command:method-answer): Встроенный метод для отправки ответного сообщения. Он автоматически определяет, куда нужно отправить ответ.
+
+    Теперь, если вы установите этот плагин и напишете в любом чате `.hello`, в чат отправится сообщение `Hello, World from MyFirstPlugin!`.
+  </Step>
+</Steps>

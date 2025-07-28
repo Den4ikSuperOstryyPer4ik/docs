@@ -1,0 +1,126 @@
+---
+title: "Базовый класс CactusUtils.Plugin"
+icon: "certificate"
+---
+
+Наследование от [`CactusUtils.Plugin`](/dev/utils/CactusUtils#plugin-cactusmodule) (или его псевдонимов `CactusModule`, `CactusPlugin`) является ключевым моментом в разработке, так как это наделяет ваш класс множеством полезных методов и атрибутов.
+
+## <Icon icon="database" size={24} iconType="solid" />  База данных
+
+Каждый плагин, использующий CactusLib, получает собственное персистентное хранилище в виде [JSON-файла](/dev/utils/CactusUtils#jsondb). Вам не нужно заботиться о его создании или загрузке — просто используйте встроенные методы.
+
+* `self.get(key: str, default: Any = None) -> Any`
+    Получает значение по ключу. Если ключ не найден, возвращает `default`.
+
+* `self.set(key: str, value: Any)`
+    Сохраняет значение по ключу.
+
+* `self.pop(key: str) -> Any`
+    Удаляет ключ и возвращает его значение.
+
+* `self.clear_db()`
+    Полностью очищает базу данных вашего плагина.
+
+**Пример: счетчик использований команды**
+```python counter.plugin icon="python" lines
+class MyPlugin(CactusUtils.Plugin):
+    @command(doc="Увеличивает и показывает счетчик")
+    def count(self, cmd: CactusUtils.Command):
+        # Получаем текущее значение, если его нет, то 0
+        current_count = self.get("usage_count", 0)
+        current_count += 1
+        # Сохраняем новое значение
+        self.set("usage_count", current_count)
+
+        cmd.answer(f"Эту команду использовали {current_count} раз.")
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+```
+
+## <Icon icon="globe" size={24} iconType="solid" />  Локализация (i18n)
+
+CactusLib имеет встроенную поддержку нескольких языков. Вы можете определить строки для разных языков, и библиотека автоматически выберет нужную в зависимости от настроек пользователя.
+
+Для этого в вашем классе нужно определить словарь `strings`:
+
+```python hello.plugin icon="python"
+class MyPlugin(CactusUtils.Plugin):
+    strings = {
+        "en": {
+            "__doc__": "This is a plugin description.",
+            "greet_doc": "- personal greeting",
+            "enter_name": "Please, enter your name.",
+            "GREETING": "Hello, {}!",
+        },
+        "ru": {
+            "__doc__": "Это описание плагина."
+            "greet_doc": "- персональное приветствие",
+            "enter_name": "Пожалуйста, введите своё имя.",
+            "GREETING": "Привет, {}!",
+        }
+    }
+    # ...
+```
+
+  * [`self.string(key: str, *args, default: str = None, **kwargs) -> str`](/dev/utils/CactusUtils#plugin-cactusmodule:method-string)
+    Получает строку по ключу для текущего языка пользователя, форматируя ее с переданными аргументами.
+
+  * `self.lstrings() -> dict`
+    Возвращает весь словарь строк для текущего языка.
+
+**Пример использования [`self.string`](/dev/utils/CactusUtils#plugin-cactusmodule:method-string):**
+
+```python hello.plugin icon="python"
+@command(doc="greet_doc") # описание команды находится в strings под ключом greet_doc
+def greet(self, cmd: CactusUtils.Command):
+    if not cmd.args:
+        cmd.answer(self.string("enter_name")) # Просим ввести имя
+        return HookResult(strategy=HookStrategy.CANCEL)
+
+    user_name = cmd.args[0]
+    # Автоматически выберет "Привет" или "Hello"
+    greeting_text = self.string("GREETING", user_name)
+    cmd.answer(greeting_text)
+
+    return HookResult(strategy=HookStrategy.CANCEL)
+```
+
+## <Icon icon="download" size={24} iconType="solid" /> / <Icon icon="upload" size={24} iconType="solid" />  Управление данными при [импорте/экспорте](/user-guide/import-export.mdx)
+
+Вы можете определять собственную логику для сохранения и восстановления сложных данных.
+
+  * `export_data(self) -> dict`
+    Вызывается, когда пользователь экспортирует плагины с данными. Верните словарь с данными, которые вы хотите сохранить.
+
+  * `import_data(self, data: dict)`
+    Вызывается при импорте. В `data` будет словарь, который вы вернули из `export_data`.
+
+<Note>
+Встроенная база данных хранится на устройстве в папке exteraGram в виде .json файла, а также экспортируются и импортируются самостоятельно при экспорте/импорте плагина или его загрузке.
+</Note>
+
+**Пример:**
+
+```python
+class MyPlugin(CactusUtils.Plugin):
+    def on_plugin_load(self):
+        super().on_plugin_load()
+        self.non_db_data = set() # Данные, которые не хранятся в JSON DB
+
+    def export_data(self) -> dict:
+        # Конвертируем set в list для JSON-сериализации
+        return {"my_custom_set": list(self.non_db_data)}
+
+    def import_data(self, data: dict):
+        # Получаем данные и конвертируем обратно в set
+        self.non_db_data = set(data.get("my_custom_set", []))
+```
+
+## <Icon icon="pen-circle" size={24} iconType="solid" />  Другие полезные атрибуты и методы
+
+  * `self.utils`: Прямой доступ к объекту `CactusUtils` со всеми его статическими методами.
+  * `self.log(msg)`, `self.info(msg)`, `self.debug(msg)`, `self.warn(msg)`, `self.error(msg)`: Методы для логирования с автоматической подстановкой ID вашего плагина.
+  * `__min_lib_version__`: Строка, указывающая минимально требуемую версию CactusLib (например, `"1.7.0"`). Если версия у пользователя ниже, плагин не загрузится.
+  * `UPDATE_DATA`: Словарь с данными для обновления плагина.
+
+  [Подробнее](/dev/utils/CactusUtils#plugin-cactusmodule)

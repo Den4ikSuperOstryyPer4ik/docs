@@ -1,0 +1,101 @@
+---
+title: "URI обработка"
+description: "tg://cactus/hello"
+icon: "link"
+---
+CactusLib позволяет создавать специальные ссылки вида `tg://cactus/...`, которые могут выполнять действия внутри приложения. Это мощный инструмент для создания кастомных взаимодействий.
+
+Существует два типа URI и, соответственно, два декоратора для них.
+
+## 1. `@uri`: Глобальные URI
+
+Эти ссылки обрабатываются глобально, когда пользователь пытается их открыть (например, при клике в описании профиля).
+
+* **Декоратор**: `@uri("my_action")`
+* **Формат ссылки**: `tg://cactus/{plugin_id}/my_action?arg1=value1`
+* **Функция-обработчик**: Принимает аргументы, указанные в URI, как именованные параметры.
+
+**Пример: URI, который показывает bulletin**
+```python
+class MyPlugin(CactusUtils.Plugin):
+    @uri("notify")
+    def _on_notify_uri(self, text: str, user: str = "Anonymous"):
+        # Показываем системное уведомление (bulletin)
+        self.utils.show_info(f"Уведомление от {user}: {text}")
+
+    @command(doc="Генерирует ссылку для уведомления")
+    def make_link(self, cmd: CactusUtils.Command):
+        # Создаем URI с помощью утилиты
+        link = self.utils.Uri.create(self, "notify", text="Hello from URI!", user="Admin")
+        # link будет "tg://cactus/my_plugin_id/notify?text=Hello+from+URI%21&user=Admin"
+        self.answer(cmd.params, f"Нажмите на эту ссылку: {link}")
+```
+
+Если пользователь перейдет по сгенерированной ссылке, на экране появится уведомление `Уведомление от Admin: Hello from URI!`.
+
+<Frame>
+    <img src="/images/example_uri1.png" width="450" />
+</Frame>
+
+## 2\. `@message_uri`: URI внутри сообщений
+
+Это особый тип URI, который работает только внутри сообщений Telegram. Вместо открытия ссылки, он вызывает вашу функцию, передавая ей контекст сообщения. Это похоже на инлайн-кнопки, но в виде обычных текстовых ссылок.
+
+  * **Декоратор**: `@message_uri("my_message_action")`
+  * **Формат ссылки**: `tg://cactusX/{plugin_id}/my_message_action?arg1=value1` (Обратите внимание на `cactusX`)
+  * **Функция-обработчик**: Первым аргументом принимает объект `CactusUtils.UriCallback`, а затем именованные параметры из URI.
+
+### Объект `CactusUtils.UriCallback`
+
+### Атрибуты
+<ParamField path="message" type="MessageObject">
+  Объект сообщения, в котором нажали на ссылку.
+</ParamField>
+
+<ParamField path="cell" type="ChatMessageCell">
+  UI-элемент сообщения.
+</ParamField>
+
+<ParamField path="edit(text, **kwargs)" type="func">
+  Редактирует сообщение. Альтернатива `CactusUtils.edit_message(cb.message, text, fragment=get_last_fragment(), **kwargs)`
+</ParamField>
+
+<ParamField path="edit_markup(markup=None)" type="func">
+  Редактирует [Inline-клавиатуру](/dev/inline) или удаляет её вовсе.
+</ParamField>
+
+<ParamField path="delete()" type="func">
+  Удаляет сообщение.
+</ParamField>
+
+## Пример: интерактивная ссылка в сообщении
+
+```python counter.plugin icon="python" lines expandable
+class MyPlugin(CactusUtils.Plugin):
+    @command(doc="Создает сообщение со счетчиком-ссылкой")
+    def link_counter(self, cmd: CactusUtils.Command):
+        count = self.get("link_count", 0)
+        # Создаем ссылку, которая будет вызывать `update_count`
+        link = self.utils.MessageUri.create(self, "update_count", amount=1)
+        cmd.answer(f"Счетчик: {count}\n\n<a href='{link}'>Нажми, чтобы увеличить</a>")
+
+        return HookResult(strategy=HookStrategy.CANCEL)
+
+    @message_uri("update_count")
+    def _on_update_count(self, cb: CactusUtils.UriCallback, amount: str):
+        # amount приходит как строка, конвертируем в int
+        new_count = self.get("link_count", 0) + int(amount)
+        self.set("link_count", new_count)
+
+        # Генерируем новую ссылку
+        new_link = self.utils.MessageUri.create(self, "update_count", amount=1)
+        # Редактируем исходное сообщение
+        cb.edit(f"Счетчик: {new_count}\n\n<a href='{new_link}'>Нажми, чтобы увеличить</a>")
+```
+
+**Как это работает:**
+
+1.  Пользователь пишет `.link_counter`.
+2.  Плагин отправляет сообщение со ссылкой, ведущей на `tg://cactusX/...`.
+3.  При нажатии на ссылку Exteragram не открывает ее, а вызывает метод `_on_update_count`.
+4.  Метод обновляет счетчик и редактирует исходное сообщение, подставляя новое значение и новую ссылку. Создается эффект интерактивного сообщения.
