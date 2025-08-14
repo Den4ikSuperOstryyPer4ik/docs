@@ -1,0 +1,68 @@
+---
+title: "📦 Общая структура и refmap"
+sidebarTitle: "Начало: refmap"
+icon: "folder-open"
+---
+
+Для работы с **ElyxCore** ваш плагин должен иметь определённую структуру. В корневой папке плагина обязательно должен находиться файл `refmap.json` (или `.yaml`, `.yml`, `.py`), который определяет пути к основным файлам плагина.
+
+
+```js Базовая структура плагина icon="folder"
+your_plugin_name/
+├── refmap.json
+├── main.py
+├── metainfo.json
+├── assets/
+│   ├── icon.png
+│   └── background.svg
+└── strings/
+    ├── strings_ru.json
+    └── strings_en.json
+```
+
+---
+
+## ⚙️ Файл `refmap`
+
+Файл `refmap.json` (или `.yaml`, `.yml`, `.py`) является сердцем плагина. Он сообщает **ElyxCore**, где искать остальные файлы плагина.
+
+<CodeGroup>
+```json refmap.json icon="brackets-curly"
+{
+  "metainfo": "metainfo.json",
+  "main": "path/to/main.py",
+  "assets": "assets",
+  "strings": "strings"
+}
+```
+
+```yaml refmap.yaml (.yml) icon="line-columns"
+metainfo: metainfo.json
+main: path/to/main.py
+assets: assets
+strings: strings
+```
+
+```python refmap.py icon="python"
+metainfo = "metainfo.json"
+main = "path/to/main.py"
+assets = "assets"
+strings = "strings"
+```
+</CodeGroup>
+
+<ParamField path="metainfo" type="string path" required>
+  Обязательный ключ. Указывает путь к файлу с метаданными.
+</ParamField>
+
+<ParamField path="main" type="string path">
+  Необязательный ключ. Путь к основному файлу плагина. По умолчанию `main.py` в корне плагина. В этом файле должен находится главный класс плагина, наследующийся от [`BasePlugin`](https://plugins.exteragram.app/docs/plugin-class) или [`CactusUtils.Plugin`](https://new-cactus.den4iksop.org/dev/base-class)
+</ParamField>
+
+<ParamField path="assets" type="string path">
+  Необязательный ключ. Путь к папке с ресурсами. По умолчанию папка `assets` в корне плагина.
+</ParamField>
+
+<ParamField path="strings" type="string path">
+  Необязательный ключ. Путь к папке или файлу с локализованными строками. По умолчанию папка `strings` в корне плагина.
+</ParamField>

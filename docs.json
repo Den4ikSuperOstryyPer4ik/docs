@@ -9,57 +9,96 @@
   },
   "favicon": "/favicon.svg",
   "navigation": {
-    "groups": [
+    "tabs": [
       {
-        "group": "Начало",
-        "icon": "play",
-        "pages": [
-          "index",
-          "changelog"
-        ]
-      },
-      {
-        "group": "Пользователям",
-        "icon": "circle-user",
-        "pages": [
-          "user-guide/commands",
-          "user-guide/plugin-management",
-          "user-guide/import-export"
-        ]
-      },
-      {
-        "group": "Разработка",
-        "icon": "code",
-        "pages": [
-          "dev/quickstart",
-          "dev/base-class",
-          "dev/create-commands",
-          "dev/inline",
-          "dev/uri",
-          "dev/parsing",
+        "tab": "CactusLib",
+        "groups": [
           {
-            "group": "Утилиты",
-            "icon": "wand-magic-sparkles",
+            "group": "Начало",
+            "icon": "play",
             "pages": [
-              "dev/utils/tlrpc",
-              "dev/utils/messages",
-              "dev/utils/CactusUtils"
+              "index",
+              "changelog"
             ]
           },
           {
-            "group": "Примеры кода",
+            "group": "Пользователям",
+            "icon": "circle-user",
+            "pages": [
+              "user-guide/commands",
+              "user-guide/plugin-management",
+              "user-guide/import-export"
+            ]
+          },
+          {
+            "group": "Разработка",
             "icon": "code",
             "pages": [
+              "dev/quickstart",
+              "dev/base-class",
+              "dev/create-commands",
+              "dev/inline",
+              "dev/uri",
+              "dev/parsing",
+              {
+                "group": "Утилиты",
+                "icon": "wand-magic-sparkles",
+                "pages": [
+                  "dev/utils/tlrpc",
+                  "dev/utils/messages",
+                  "dev/utils/CactusUtils"
+                ]
+              },
+              {
+                "group": "Примеры кода",
+                "icon": "code",
+                "pages": [
+                ]
+              }
+            ]
+          },
+          {
+            "group": "Плагины",
+            "icon": "puzzle-piece",
+            "pages": [
+              "plugins/InlineBuilder",
+              "plugins/DevSettingsIcons"
             ]
           }
         ]
       },
       {
-        "group": "Плагины",
-		    "icon": "puzzle-piece",
-        "pages": [
-          "plugins/InlineBuilder",
-          "plugins/DevSettingsIcons"
+        "tab": "Elyx",
+        "groups": [
+          {
+            "group": "Начало",
+            "icon": "play",
+            "pages": [
+              "elyx/index",
+              "elyx/changelog"
+            ]
+          },
+          {
+            "group": "Разработка",
+            "icon": "code",
+            "pages": [
+              {
+                "group": "Структура",
+                "icon": "folder-tree",
+                "pages": [
+                  "elyx/structure",
+                  "elyx/metainfo",
+                  "elyx/strings",
+                  "elyx/assets"
+                ]
+              },
+              "elyx/imports",
+              {
+                "group": "Примеры плагинов",
+                "pages": ["test"]
+              }
+            ]
+          }
         ]
       }
     ],

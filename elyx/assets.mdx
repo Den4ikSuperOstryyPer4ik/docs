@@ -1,0 +1,218 @@
+---
+title: "Ресурсы (Assets)"
+icon: "file-image"
+---
+
+**ElyxCore** предоставляет удобный класс `Assets` для работы с файлами ресурсов, расположенными в папке, путь к которой указан в `refmap`.
+
+### Использование
+
+Вы можете получить доступ к ресурсам, обращаясь к объекту `assets` по имени файла без расширения.
+
+```python
+from elyx import assets
+
+# Доступ к ресурсу с именем "icon.png"
+icon_asset = assets.icon
+
+# Получение SVG-drawable
+svg_drawable = assets.background.to_svg_drawable(width=32, height=32)
+
+# Преобразование картинки в BitmapDrawable с нужным размером
+bitmap_drawable = assets.icon.to_bitmap_drawable(width=64, height=64)
+
+# Чтение содержимого файла
+image_bytes = assets.icon.content_bytes()
+svg_content = assets.background.content_string()
+```
+<Warning>**Предупреждение:** Не называйте файлы с разными расширениями одинаковыми именами для корректной работы системы плагинов.</Warning>
+
+
+### Методы класса `elyx.Asset`
+
+<AccordionGroup>
+    <Accordion title="@property path_str">
+        ```python
+        @property
+        def path_str(self) -> str
+        ```
+        Возвращает строку с полным постоянным путем к файлу для дальнейшего использования.
+
+        ```python Пример использования icon="python"
+        icon_path: str = assets.icon.path_str
+        ```
+    </Accordion>
+    
+    <Accordion title="@property java_file">
+        ```python
+        @property
+        def java_file(self) -> java.io.File:
+            return File(self.path_str)
+        ```
+        Возвращает объект файла `java.io.File` с полным его путем.
+
+        ```python Пример использования icon="python"
+        icon_file = assets.icon.java_file
+        ```
+    </Accordion>
+
+    <Accordion title="to_image_location">
+        ```python
+        def to_image_location(self) -> org.telegram.messenger.ImageLocation
+        ```
+        Возвращает готовый объект `org.telegram.messenger.ImageLocation`
+
+        ```python Пример использования icon="python"
+        img_loc = assets.image.to_image_location()
+        ```
+    </Accordion>
+
+    <Accordion title="to_drawable">
+        ```python
+        def to_drawable(self) -> android.graphics.drawable.Drawable
+        ```
+        Возвращает готовый объект `android.graphics.drawable.Drawable`
+
+        ```python Пример использования icon="python"
+        drawable = assets.icon.to_drawable()
+        ```
+    </Accordion>
+
+    <Accordion title="to_bitmap_drawable">
+        ```python
+        def to_bitmap_drawable(
+            self,
+            width: int = 32,
+            height: int = 32
+        ) -> android.graphics.drawable.BitmapDrawable
+        ```
+        Создаёт объект `android.graphics.drawable.BitmapDrawable` с указанными параметрами.
+        Тот же to_drawable(), но с параметрами размера.
+
+        ```python Пример использования icon="python"
+        drawable = assets.image.to_bitmap_drawable(64, 64)
+        ```
+    </Accordion>
+
+    <Accordion title="to_lottie_drawable">
+        ```python
+        def to_lottie_drawable(
+            self,
+            width: int = 32,
+            height: int = 32
+        ) -> org.telegram.ui.Components.RLottieDrawable
+        ```
+        Создаёт объект `org.telegram.ui.Components.RLottieDrawable` с указанными размерами.
+        Только для `lottie`-анимаций в виде `json` файла.
+
+        ```python Пример использования icon="python"
+        drawable = assets.anim.to_lottie_drawable(48, 48)
+        ```
+    </Accordion>
+
+    <Accordion title="to_svg_drawable">
+        ```python
+        def to_svg_drawable(
+            self,
+            width: Optional[int] = None,
+            height: Optional[int] = None,
+            *args
+        ) -> android.graphics.drawable.BitmapDrawable | org.telegram.messenger.SvgHelper.SvgDrawable
+        ```
+        Создаёт объект `android.graphics.drawable.BitmapDrawable` с нужным размером и цветом, если вы их указали, или `org.telegram.messenger.SvgHelper.SvgDrawable`, если не указали ничего.
+        Только для `svg`-файлов.
+
+        ```python Пример использования icon="python"
+        drawable = assets.logo.to_svg_drawable(48, 48)  # android.graphics.drawable.BitmapDrawable
+        drawable_other = assets.logo.to_svg_drawable()  # org.telegram.messenger.SvgHelper.SvgDrawable
+        ```
+
+        <Note>Рекомендуется указывать размер всегда.</Note>
+    </Accordion>
+
+    <Accordion title="to_svg_thumb">
+        ```python
+        def to_svg_thumb(self, color_key: int, alpha: float) -> org.telegram.messenger.SvgHelper.SvgDrawable
+        ```
+        Создаёт объект `org.telegram.messenger.SvgHelper.SvgDrawable`, ставя цвет и альфа в метод `.setupGradient()`
+        Только для `svg` файлов.
+
+        Тот же метод `public static org.telegram.messenger.DocumentObject.getSvgThumb(sizes, colorKey, alpha)`, только для своих svg-файлов.
+
+        ```python Пример использования icon="python"
+        drawable = assets.logo.to_svg_thumb(Theme.key_windowBackgroundGray, 0.8)
+        ```
+    </Accordion>
+
+    <Accordion title="to_svg_bitmap">
+        ```python
+        def to_svg_bitmap(
+            self,
+            width: int = 32,
+            height: int = 32,
+            *args
+        ) -> android.graphics.Bitmap
+        ```
+        Создаёт объект `android.graphics.Bitmap` с указанными размерами.
+        Только для `svg` файлов.
+
+        ```python Пример использования icon="python"
+        bitmap = assets.logo.to_svg_bitmap(48, 48)
+        ```
+    </Accordion>
+
+    <Accordion title="content_bytes">
+        ```python
+        def content_bytes(self) -> bytes
+        ```
+        Возвращает контент из файла ресурса в байтах.
+
+        ```python Пример использования icon="python"
+        image_bytes: bytes = assets.image.content_bytes()
+        ```
+    </Accordion>
+
+    <Accordion title="content_string">
+        ```python
+        def content_string(self) -> str
+        ```
+        Возвращает контент из файла ресурса в виде строки.
+
+        ```python Пример использования icon="python"
+        svg_text: str = assets.logo.content_string()
+        ```
+    </Accordion>
+
+    <Accordion title="content_bytes">
+        ```python
+        def content_bytes(self) -> bytes
+        ```
+        Возвращает контент из файла ресурса в байтах.
+
+        ```python Пример использования icon="python"
+        image_bytes: bytes = assets.image.content_bytes()
+        ```
+    </Accordion>
+
+    <Accordion title="content_json">
+        ```python
+        def content_json(self) -> dict
+        ```
+        Возвращает контент из файла ресурса в виде словаря, если это `.json` файл.
+
+        ```python Пример использования icon="python"
+        data: dict = assets.someone_data_file.content_json()
+        ```
+    </Accordion>
+
+    <Accordion title="content_yaml">
+        ```python
+        def content_yaml(self) -> dict
+        ```
+        Возвращает контент из файла ресурса в виде словаря, если это `.yaml` (`.yml`) файл.
+
+        ```python Пример использования icon="python"
+        data: dict = assets.someone_data_file.content_yaml()
+        ```
+    </Accordion>
+</AccordionGroup>

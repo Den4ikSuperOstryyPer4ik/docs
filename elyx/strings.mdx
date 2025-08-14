@@ -1,0 +1,206 @@
+---
+title: "Строки и автоматическая локализация"
+sidebarTitle: "Строки - локализация"
+icon: "text"
+---
+
+Локализация строк позволяет вашему плагину поддерживать разные языки и моментально определять нужную строку без особых усилий с вашей стороны. Строки можно хранить в файле (`strings.json`, `strings.py`) или в папке.
+
+### Вариант 1: Один файл для всех языков
+
+<CodeGroup>
+```json strings.json icon="brackets-curly"
+{
+    "en": {
+        "icons": "Icons (R.drawable)",
+        "animations": "Animations (R.raw)",
+        "filters": "Filters",
+        "search": "Search",
+        "type": "Type of drawable icons",
+        "all": "All",
+        "show_as_grid": "Show as grid",
+        "show_as_list": "Show as list",
+        "loading": "Loading...",
+        "icon_size": "Icon size",
+        "animation_size": "Animation size",
+        "min": "MIN",
+        "max": "MAX",
+        "pause": "Pause",
+        "play": "Play"
+    },
+    "ru": {
+        "icons": "Иконки (R.drawable)",
+        "animations": "Анимации (R.raw)",
+        "filters": "Фильтры",
+        "search": "Поиск",
+        "type": "Тип иконок",
+        "all": "Все",
+        "show_as_grid": "Показать в виде плитки",
+        "show_as_list": "Показать в виде списка",
+        "loading": "Загрузка...",
+        "icon_size": "Размер иконки",
+        "animation_size": "Размер анимации",
+        "min": "МИН",
+        "max": "МАКС",
+        "pause": "Остановить",
+        "play": "Запустить"
+    }
+}
+```
+
+```python strings.py icon="python"
+en = {
+    "icons": "Icons (R.drawable)",
+    "animations": "Animations (R.raw)",
+    "filters": "Filters",
+    "search": "Search",
+    "type": "Type of drawable icons",
+    "all": "All",
+    "show_as_grid": "Show as grid",
+    "show_as_list": "Show as list",
+    "loading": "Loading...",
+    "icon_size": "Icon size",
+    "animation_size": "Animation size",
+    "min": "MIN",
+    "max": "MAX",
+    "pause": "Pause",
+    "play": "Play"
+}
+
+ru = {
+    "icons": "Иконки (R.drawable)",
+    "animations": "Анимации (R.raw)",
+    "filters": "Фильтры",
+    "search": "Поиск",
+    "type": "Тип иконок",
+    "all": "Все",
+    "show_as_grid": "Показать в виде плитки",
+    "show_as_list": "Показать в виде списка",
+    "loading": "Загрузка...",
+    "icon_size": "Размер иконки",
+    "animation_size": "Размер анимации",
+    "min": "МИН",
+    "max": "МАКС",
+    "pause": "Остановить",
+    "play": "Запустить"
+}
+
+# Или можете просто определить строки без перевода, которые будут использованы при любом установленном языке
+string_key = "Universal String value"
+...
+```
+</CodeGroup>
+
+---
+
+### Вариант 2: Папка для каждого языка
+
+Вы можете создать папку `strings` и хранить файлы для каждого языка отдельно:
+
+<CodeGroup>
+```json strings/strings_en.json icon="brackets-curly"
+{
+    "icons": "Icons (R.drawable)",
+    "animations": "Animations (R.raw)",
+    "filters": "Filters",
+    "search": "Search",
+    "type": "Type of drawable icons",
+    "all": "All",
+    "show_as_grid": "Show as grid",
+    "show_as_list": "Show as list",
+    "loading": "Loading...",
+    "icon_size": "Icon size",
+    "animation_size": "Animation size",
+    "min": "MIN",
+    "max": "MAX",
+    "pause": "Pause",
+    "play": "Play"
+}
+```
+
+```json strings/strings_ru.json icon="brackets-curly"
+{
+    "icons": "Иконки (R.drawable)",
+    "animations": "Анимации (R.raw)",
+    "filters": "Фильтры",
+    "search": "Поиск",
+    "type": "Тип иконок",
+    "all": "Все",
+    "show_as_grid": "Показать в виде плитки",
+    "show_as_list": "Показать в виде списка",
+    "loading": "Загрузка...",
+    "icon_size": "Размер иконки",
+    "animation_size": "Размер анимации",
+    "min": "МИН",
+    "max": "МАКС",
+    "pause": "Остановить",
+    "play": "Запустить"
+}
+```
+
+```json strings/strings_<locale>.json icon="brackets-curly"
+{
+    "...": "..."
+}
+```
+</CodeGroup>
+<Note>Вы также можете вместо `json`-файлов использовать `yaml`</Note>
+
+---
+
+# Использование
+
+В коде плагина вы сможете получить доступ к строкам с помощью объекта `strings`, который автоматически выбирает необходимый возможный язык в нужный момент.
+
+```python
+# Пример использования
+from elyx import strings  # импортируется "ленивый словарь" (LazyDict) с вашими строками из файлов с измененными методами
+
+text = strings.my_string_key  # можно обращаться как к атрибуту
+text = strings["my_string_key"]  # или как к элементу словаря
+
+# или вызывать как функцию, которая автоматически вызывает .format(*args, **kwargs)
+text = strings("my_string_key_with_format", name="User")
+```
+
+```python Пример активного использования icon="python"
+def create_settings(self):
+    return [
+        Header(text=strings["icons"]),
+        Input(key=..., text=strings["search"], icon=..., default=""),
+        Selector(
+            key=...,
+            text=strings["type"],
+            default=0,
+            items=[strings["all"], "Solar", "Remix", "Default"],
+            icon=...
+        ),
+        Text(
+            text=strings["show_as_grid"],
+            accent=True,
+            on_click=...,
+            icon=...
+        ),
+        Text(
+            text=strings["show_as_list"],
+            accent=True,
+            on_click=...,
+            icon=...
+        ),
+        Divider(),
+        Header(text=strings["animations"]),
+        Input(key=..., text=strings["search"], icon=..., default=""),
+        Text(
+            text=strings["show_as_grid"],
+            accent=True,
+            on_click=...,
+            icon=...
+        ),
+        Text(
+            text=strings["show_as_list"],
+            accent=True,
+            on_click=...,
+            icon=...
+        ),
+    ]
+```

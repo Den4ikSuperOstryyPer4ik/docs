@@ -1,0 +1,78 @@
+---
+title: "Метаданные"
+icon: "circle-info"
+---
+
+Файл `metainfo.json` (или `.yaml`, `.yml`, `.py`) содержит информацию о плагине. Он используется **exteraGram** для отображения плагина в списке.
+
+<CodeGroup>
+```json metainfo.json icon="brackets-curly"
+{
+    "name": "DevSettingIcons",
+    "description": "[For Devs] All icons/animations for plugin settings/bulletins and more with filters!",
+    "icon": "assets/icon.png",
+    "id": "devsettingicons",
+    "version": "1.4.0",
+    "author": "@CactusPlugins",
+    "min_version": "11.13.0",
+    "requires": {
+        "cactuslib (1.8.0)": "https://t.me/CactusPlugins/19"
+    }
+}
+```
+
+```yaml metainfo.yaml (.yml) icon="line-columns"
+name: DevSettingIcons
+description: "[For devs] All icons/animations for plugin settings/bulletins and more with filters!"
+icon: assets/icon.png
+id: devsettingicons
+version: 1.4.0
+author: "@CactusPlugins"
+min_version: "11.13.0"
+```
+
+```python metainfo.py icon="python"
+name = "DevSettingIcons"
+description = "[For devs] All icons/animations for plugin settings/bulletins and more with filters!"
+icon = "assets/icon.png"
+id = "devsettingicons"
+version = "1.4.0"
+author = "@CactusPlugins"
+min_version = "11.13.0"
+requires = {
+    "cactuslib (1.8.0)": "https://t.me/CactusPlugins/19" # как пример требуемого плагина
+}
+
+# или можете как в принято в основном
+__name__ = "DevSettingIcons"
+__description__ = "[For devs] All icons/animations for plugin settings/bulletins and more with filters!"
+__icon__ = "assets/icon.png"
+__id__ = "devsettingicons"
+__version__ = "1.4.0"
+__author__ = "@CactusPlugins"
+__min_version__ = "11.13.0"
+__requires__ = {
+    "cactuslib (1.8.0)": "https://t.me/CactusPlugins/19" # как пример требуемого плагина
+}
+```
+</CodeGroup>
+
+### Допустимые ключи
+
+| Ключ          | Тип      | Описание                                                                                                                              | Обязательный |
+|---------------|----------|---------------------------------------------------------------------------------------------------------------------------------------|--------------|
+| `name`        | `string` | Название плагина.                                                                                                                     | Да           |
+| `description` | `string` | Описание плагина.                                                                                                                     | Нет          |
+| `version`     | `string` | Версия плагина. По умолчанию `1.0.0`.                                                                                                 | Нет          |
+| `icon`        | `string` | Путь к файлу с иконкой плагина или `stickerPackShortName/index`                                                                       | Нет          |
+| `id`          | `string` | Уникальный ID плагина. Должен быть 2-32 символа, состоять из букв, цифр и подчёркиваний.                                              | Да           |
+| `author`      | `string` | Автор плагина. Обычно указывают канал.                                                                                                | Нет          |
+| `min_version` | `string` | Минимальная версия **exteraGram**, необходимая для работы плагина.                                                                    | Нет          |
+| `requires`    | `dict`   | Список необходимых плагинов. Ключ — ID плагина, значение — ссылка для скачивания. Формат ключа: `"plugin_id (min_version)"`.          | Нет          |
+
+
+
+<Frame caption="Меню установки плагина при отсутствии необходимых плагинов (`metainfo.requires`)">
+  <img src="/images/elyx/required_plugins_ru.jpg" width="400" />
+  <img src="/images/elyx/required_plugins_en.jpg" width="400" />
+</Frame>
